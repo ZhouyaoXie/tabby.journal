@@ -2,22 +2,58 @@ import SwiftUI
 import CoreData
 import Combine
 
+// Import the missing JournalModel reference
+import Foundation
+
 struct CalendarView: View {
+    // Constants for date range
+    private let calendarStartDate: Date = {
+        var components = DateComponents()
+        components.year = 1999
+        components.month = 07
+        components.day = 15
+        return Calendar.current.date(from: components) ?? Date()
+    }()
+    
+    private let calendarEndDate: Date = {
+        var components = DateComponents()
+        components.year = 2050
+        components.month = 12
+        components.day = 31
+        return Calendar.current.date(from: components) ?? Date()
+    }()
+    
+    // Virtualization parameters
+    private let visibleDayWindow: Int = 365 // Show about a year of dates at a time
+    private let visibleDayBuffer: Int = 90  // Buffer of 3 months on each side
+    private var totalDaysInRange: Int {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day], from: calendarStartDate, to: calendarEndDate)
+        return components.day ?? 18000 // Fallback to approximate number
+    }
+    
     @State private var selectedDate: Date = Date()
+    @State private var visibleDateRange: ClosedRange<Date> = Date()...Date()
     @State private var displayDates: [Date] = []
-    @State private var calendarOffset: Int = 0 // Tracks the current week offset
+    @State private var centerVisibleIndex: Int = 0 // Current center of visible window
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject var appState: AppState
     
     // Journal entry data for the selected date
     @State private var currentIntention: String = ""
     @State private var currentGoal: String = ""
     @State private var currentReflection: String = ""
+    @State private var hasLoadedData: Bool = false
+    
+    // Store entries with dates for quicker UI updates
+    @State private var entriesByDate: [Date: NSManagedObject] = [:]
+    @State private var lastRefreshTime: Date = Date()
     
     // Format for the header (Mon, Aug 17)
     private let dateHeaderFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.dateFormat = "E, MMM d"
+        formatter.dateFormat = "E, MMM d, yyyy"
         return formatter
     }()
     
@@ -28,6 +64,59 @@ struct CalendarView: View {
         return formatter
     }()
     
+    // Format for the month (Aug)
+    private let monthFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM"
+        return formatter
+    }()
+    
+    // Core Data operations
+    private func fetchJournalEntry(for date: Date) -> NSManagedObject? {
+        // Use direct Core Data queries since we don't have access to CoreDataManager
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+        
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "JournalEntry")
+        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date < %@", startOfDay as NSDate, endOfDay as NSDate)
+        fetchRequest.fetchLimit = 1
+        
+        do {
+            let results = try viewContext.fetch(fetchRequest)
+            return results.first
+        } catch {
+            print("Error fetching journal entry: \(error)")
+            return nil
+        }
+    }
+    
+    private func fetchJournalEntries(from startDate: Date, to endDate: Date) -> [NSManagedObject] {
+        // Use direct Core Data queries
+        let calendar = Calendar.current
+        let startOfStartDate = calendar.startOfDay(for: startDate)
+        let endOfEndDate = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: endDate))!
+        
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "JournalEntry")
+        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date < %@", startOfStartDate as NSDate, endOfEndDate as NSDate)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        
+        do {
+            return try viewContext.fetch(fetchRequest)
+        } catch {
+            print("Error fetching journal entries: \(error)")
+            return []
+        }
+    }
+    
+    private func getEntryValues(_ entry: NSManagedObject) -> (intention: String?, goal: String?, reflection: String?) {
+        let intention = entry.value(forKey: "intention") as? String
+        let goal = entry.value(forKey: "goal") as? String
+        let reflection = entry.value(forKey: "reflection") as? String
+        
+        return (intention, goal, reflection)
+    }
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -36,7 +125,7 @@ struct CalendarView: View {
                 VStack(spacing: 0) {
                     // Date header and selector section with light purple background
                     VStack(spacing: 16) {
-                        // Selected date display (Mon, Aug 17)
+                        // Selected date display
                         HStack {
                             Text(dateHeaderFormatter.string(from: selectedDate))
                                 .font(.largeTitle)
@@ -49,8 +138,8 @@ struct CalendarView: View {
                                 // Reset to today
                                 withAnimation {
                                     selectedDate = Date()
-                                    calendarOffset = 0
-                                    generateDateRange()
+                                    // Scroll to today without regenerating all dates
+                                    updateVisibleDates(around: selectedDate)
                                 }
                             }) {
                                 Image(systemName: "calendar")
@@ -62,11 +151,14 @@ struct CalendarView: View {
                         
                         // Date navigation section
                         HStack {
-                            // Previous week button
+                            // Previous month button
                             Button(action: {
                                 withAnimation {
-                                    calendarOffset -= 1
-                                    generateDateRange()
+                                    // Navigate to first day of previous month
+                                    if let previousMonth = getFirstDayOfPreviousMonth(from: selectedDate) {
+                                        selectedDate = previousMonth
+                                        updateVisibleDates(around: selectedDate)
+                                    }
                                 }
                             }) {
                                 Image(systemName: "chevron.left")
@@ -78,11 +170,21 @@ struct CalendarView: View {
                             
                             Spacer()
                             
-                            // Next week button
+                            // Show current month and year
+                            Text(formatMonthYear(selectedDate))
+                                .font(.headline)
+                                .foregroundColor(Color("CardText"))
+                            
+                            Spacer()
+                            
+                            // Next month button
                             Button(action: {
                                 withAnimation {
-                                    calendarOffset += 1
-                                    generateDateRange()
+                                    // Navigate to first day of next month
+                                    if let nextMonth = getFirstDayOfNextMonth(from: selectedDate) {
+                                        selectedDate = nextMonth
+                                        updateVisibleDates(around: selectedDate)
+                                    }
                                 }
                             }) {
                                 Image(systemName: "chevron.right")
@@ -94,22 +196,29 @@ struct CalendarView: View {
                         }
                         .padding(.horizontal)
                         
-                        // Horizontal date picker
+                        // Horizontal date picker with extended range
                         ScrollViewReader { scrollView in
                             ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 18) {
+                                LazyHStack(spacing: 18) {
                                     ForEach(displayDates, id: \.self) { date in
                                         DateCircleView(
                                             date: date,
                                             isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
                                             isToday: Calendar.current.isDateInToday(date),
                                             hasEntry: checkForJournalEntry(date),
-                                            dayFormatter: dayFormatter
+                                            dayFormatter: dayFormatter,
+                                            monthFormatter: monthFormatter,
+                                            showMonth: shouldShowMonth(for: date)
                                         )
-                                        .id(date)
+                                        .id(formatDateID(date))
                                         .onTapGesture {
                                             withAnimation(.easeInOut(duration: 0.3)) {
                                                 selectedDate = date
+                                                
+                                                // Update visible dates if we're near an edge
+                                                if isDateNearEdge(date) {
+                                                    updateVisibleDates(around: date)
+                                                }
                                             }
                                         }
                                     }
@@ -118,17 +227,37 @@ struct CalendarView: View {
                                 .padding(.bottom, 8)
                             }
                             .onAppear {
-                                // Scroll to selected date when view appears
-                                scrollView.scrollTo(selectedDate, anchor: .center)
+                                // Ensure selectedDate is visible in the center of the screen
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    updateVisibleDates(around: selectedDate)
+                                    
+                                    // Use two-phase approach with longer delay for more reliable scrolling
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        print("Attempting to scroll to \(dateHeaderFormatter.string(from: selectedDate)) with ID \(formatDateID(selectedDate))")
+                                        withAnimation {
+                                            scrollView.scrollTo(formatDateID(selectedDate), anchor: .center)
+                                        }
+                                    }
+                                }
                             }
                             .onChange(of: selectedDate) { newDate in
-                                // Scroll to newly selected date
-                                withAnimation {
-                                    scrollView.scrollTo(newDate, anchor: .center)
+                                // Scroll to newly selected date with better timing
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    withAnimation {
+                                        scrollView.scrollTo(formatDateID(newDate), anchor: .center)
+                                    }
                                 }
                                 
                                 // Load journal entry for the selected date
                                 loadJournalEntry(for: newDate)
+                            }
+                            .onChange(of: displayDates) { _ in
+                                // When display dates change, ensure selected date is visible
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    withAnimation {
+                                        scrollView.scrollTo(formatDateID(selectedDate), anchor: .center)
+                                    }
+                                }
                             }
                         }
                     }
@@ -188,90 +317,264 @@ struct CalendarView: View {
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .onAppear {
-                generateDateRange()
+                print("CalendarView appeared, preparing to refresh data")
+                
+                // Initialize the date window with today at the center
+                if displayDates.isEmpty {
+                    updateVisibleDates(around: Date())
+                }
+                
+                prefetchJournalEntries()
+                loadJournalEntry(for: selectedDate)
+            }
+            .onChange(of: displayDates) { _ in
+                prefetchJournalEntries()
+            }
+            .onChange(of: appState.journalUpdateId) { newId in
+                print("===== CALENDAR REFRESH =====")
+                print("Detected AppState update with ID: \(newId)")
+                print("Timestamp: \(appState.lastJournalUpdate)")
+                print("Refreshing calendar data...")
+                
+                // Clear cache completely on update
+                entriesByDate.removeAll()
+                
+                // Refresh the data
+                prefetchJournalEntries()
+                loadJournalEntry(for: selectedDate)
+                
+                print("Calendar refresh complete")
+                print("===========================")
+            }
+        }
+    }
+    
+    // Calculates the index for a specific date relative to the start date
+    private func indexForDate(_ date: Date) -> Int {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day], from: calendarStartDate, to: date)
+        return max(0, components.day ?? 0)
+    }
+    
+    // Gets the date for a specific index
+    private func dateForIndex(_ index: Int) -> Date? {
+        let calendar = Calendar.current
+        return calendar.date(byAdding: .day, value: index, to: calendarStartDate)
+    }
+    
+    // Check if date is near the edge of our current date window
+    private func isDateNearEdge(_ date: Date) -> Bool {
+        let index = indexForDate(date)
+        let windowStart = centerVisibleIndex - (visibleDayWindow / 2)
+        let windowEnd = centerVisibleIndex + (visibleDayWindow / 2)
+        
+        // Check if within buffer of either edge
+        return index < (windowStart + visibleDayBuffer) || index > (windowEnd - visibleDayBuffer)
+    }
+    
+    // Update visible dates centered around a specific date
+    private func updateVisibleDates(around centerDate: Date) {
+        print("Updating visible dates around: \(dateHeaderFormatter.string(from: centerDate))")
+        
+        // Ensure date is within valid range
+        let validCenterDate = min(max(centerDate, calendarStartDate), calendarEndDate)
+        
+        // Calculate the index for the center date
+        let centerIndex = indexForDate(validCenterDate)
+        centerVisibleIndex = centerIndex
+        
+        // Calculate start and end indices
+        let halfWindow = visibleDayWindow / 2
+        let startIndex = max(0, centerIndex - halfWindow)
+        let endIndex = min(totalDaysInRange, centerIndex + halfWindow)
+        
+        // Update the visible date range
+        if let startDate = dateForIndex(startIndex),
+           let endDate = dateForIndex(endIndex) {
+            visibleDateRange = startDate...endDate
+            
+            // Generate only the dates we need to display
+            var dates: [Date] = []
+            for i in startIndex...endIndex {
+                if let date = dateForIndex(i) {
+                    dates.append(date)
+                }
+            }
+            
+            print("Generated \(dates.count) dates from \(dateHeaderFormatter.string(from: dates.first!)) to \(dateHeaderFormatter.string(from: dates.last!))")
+            displayDates = dates
+        }
+    }
+    
+    // Check if we should show the month label (first day of month or first visible date)
+    private func shouldShowMonth(for date: Date) -> Bool {
+        let calendar = Calendar.current
+        let isFirstDayOfMonth = calendar.component(.day, from: date) == 1
+        
+        // Also show month for the first visible date
+        if let firstDate = displayDates.first, calendar.isDate(date, inSameDayAs: firstDate) {
+            return true
+        }
+        
+        return isFirstDayOfMonth
+    }
+    
+    // Helper to format month and year (e.g., "August 2023")
+    private func formatMonthYear(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: date)
+    }
+    
+    // Get the first day of the previous month from a given date
+    private func getFirstDayOfPreviousMonth(from date: Date) -> Date? {
+        let calendar = Calendar.current
+        
+        // Get the first day of the current month
+        var components = calendar.dateComponents([.year, .month, .day], from: date)
+        components.day = 1
+        
+        guard let firstDayOfCurrentMonth = calendar.date(from: components) else {
+            return nil
+        }
+        
+        // Subtract one day to get the last day of the previous month
+        guard let lastDayOfPreviousMonth = calendar.date(byAdding: .day, value: -1, to: firstDayOfCurrentMonth) else {
+            return nil
+        }
+        
+        // Get the first day of the previous month
+        components = calendar.dateComponents([.year, .month, .day], from: lastDayOfPreviousMonth)
+        components.day = 1
+        
+        let firstDayOfPreviousMonth = calendar.date(from: components)
+        
+        // Ensure we don't go before our minimum date
+        if let result = firstDayOfPreviousMonth, result < calendarStartDate {
+            return calendarStartDate
+        }
+        
+        return firstDayOfPreviousMonth
+    }
+    
+    // Get the first day of the next month from a given date
+    private func getFirstDayOfNextMonth(from date: Date) -> Date? {
+        let calendar = Calendar.current
+        
+        // Get current month and year
+        var components = calendar.dateComponents([.year, .month, .day], from: date)
+        
+        // Move to next month, day 1
+        if components.month == 12 {
+            components.month = 1
+            components.year! += 1
+        } else {
+            components.month! += 1
+        }
+        components.day = 1
+        
+        let firstDayOfNextMonth = calendar.date(from: components)
+        
+        // Ensure we don't go beyond our maximum date
+        if let result = firstDayOfNextMonth, result > calendarEndDate {
+            return calendarEndDate
+        }
+        
+        return firstDayOfNextMonth
+    }
+    
+    // Prefetch journal entries for the visible date range
+    private func prefetchJournalEntries() {
+        guard !displayDates.isEmpty else { return }
+        
+        print("Prefetching journal entries after update at: \(Date())")
+        
+        // Get first and last date from our display dates
+        let firstDate = displayDates.first ?? Date()
+        let lastDate = displayDates.last ?? Date()
+        
+        // Fetch all entries within the range
+        let entries = fetchJournalEntries(from: firstDate, to: lastDate)
+        
+        print("Found \(entries.count) entries in date range")
+        
+        // Clear the old cache and rebuild it
+        entriesByDate.removeAll()
+        
+        entries.forEach { entry in
+            if let date = entry.value(forKey: "date") as? Date {
+                // Store by start of day to ensure accurate date matching
+                let calendar = Calendar.current
+                let startOfDay = calendar.startOfDay(for: date)
+                entriesByDate[startOfDay] = entry
+            }
+        }
+        
+        // If the selected date entry was fetched, update the UI
+        if Calendar.current.isDateInToday(selectedDate) {
+            // For today, always try to load the latest version of the entry
+            loadJournalEntry(for: selectedDate)
+        } else {
+            // For other dates, check if it's in our prefetched cache
+            let calendar = Calendar.current
+            let selectedStartOfDay = calendar.startOfDay(for: selectedDate)
+            
+            if entriesByDate.keys.contains(where: { calendar.isDate($0, inSameDayAs: selectedStartOfDay) }) {
                 loadJournalEntry(for: selectedDate)
             }
         }
+        
+        lastRefreshTime = Date()
     }
     
-    // Generate dates for the horizontal date picker based on the current offset
-    private func generateDateRange() {
-        let calendar = Calendar.current
-        let today = Date()
-        
-        // Calculate the base date (start of the week) with the offset
-        let offsetWeeks = calendar.date(byAdding: .weekOfYear, value: calendarOffset, to: today) ?? today
-        let startOfWeek = calendar.date(byAdding: .day, value: -3, to: offsetWeeks) ?? offsetWeeks
-        
-        var dates: [Date] = []
-        for dayOffset in 0..<7 {
-            if let date = calendar.date(byAdding: .day, value: dayOffset, to: startOfWeek) {
-                dates.append(date)
-            }
-        }
-        
-        displayDates = dates
-    }
-    
-    // For the calendar preview, we'll simulate journal entries
-    // In a real implementation, this would use CoreDataManager 
+    // Load journal entry for the selected date from Core Data
     private func loadJournalEntry(for date: Date) {
-        // For now, let's simulate some data
-        let calendar = Calendar.current
-        let today = Date()
-        
-        if calendar.isDateInToday(date) {
-            // Today's entry
-            currentIntention = "I want to focus on self-care today."
-            currentGoal = "- finish calendar view UI design\n- prepare for LLM fine tuning presentation\n- spend 10 min working out"
-            currentReflection = "I've been enjoying waking up early in the morning recently but I need to go to bed earlier in the evening."
-        } else if let yesterday = calendar.date(byAdding: .day, value: -1, to: today), 
-                  calendar.isDate(date, inSameDayAs: yesterday) {
-            // Yesterday's entry
-            currentIntention = "Focus on completing the tabby.journal app"
-            currentGoal = "- implement core data model\n- create basic UI"
-            currentReflection = "Made good progress on the app structure today."
-        } else if let twoDaysAgo = calendar.date(byAdding: .day, value: -2, to: today),
-                  calendar.isDate(date, inSameDayAs: twoDaysAgo) {
-            // Two days ago entry
-            currentIntention = "Plan the journal app structure"
-            currentGoal = "- research similar apps\n- sketch main screens\n- outline data model"
-            currentReflection = "Found some great ideas from other journaling apps."
+        if let entry = fetchJournalEntry(for: date) {
+            // Get values from Core Data
+            let values = getEntryValues(entry)
+            
+            // Update our state values
+            currentIntention = values.intention ?? ""
+            currentGoal = values.goal ?? ""
+            currentReflection = values.reflection ?? ""
         } else {
-            // Empty for other days
+            // No entry exists for this date
             currentIntention = ""
             currentGoal = ""
             currentReflection = ""
         }
+        
+        hasLoadedData = true
     }
     
-    // Simulate checking for journal entries
+    // Check if a journal entry exists for a date using the cache when possible
     private func checkForJournalEntry(_ date: Date) -> Bool {
         let calendar = Calendar.current
-        let today = Date()
+        let startOfDay = calendar.startOfDay(for: date)
         
-        // Simulate having entries for today and the previous two days
-        if calendar.isDateInToday(date) {
-            return true
+        // First check our cache
+        for (entryDate, _) in entriesByDate {
+            if calendar.isDate(entryDate, inSameDayAs: startOfDay) {
+                return true
+            }
         }
         
-        if let yesterday = calendar.date(byAdding: .day, value: -1, to: today),
-           calendar.isDate(date, inSameDayAs: yesterday) {
-            return true
-        }
-        
-        if let twoDaysAgo = calendar.date(byAdding: .day, value: -2, to: today),
-           calendar.isDate(date, inSameDayAs: twoDaysAgo) {
-            return true
-        }
-        
-        return false
+        // If not in cache, check Core Data
+        return fetchJournalEntry(for: date) != nil
     }
     
-    // Navigate to journal view (in a real app, this would use NavigationLink or other navigation)
+    // Navigate to journal view
     private func navigateToJournalView() {
-        // In the completed app, this would switch to the Journal tab and set the selected date
+        // In a real implementation, this would use TabView selection to switch tabs
         // For now, it's just a placeholder
+        // TODO: Implement tab switching logic
+    }
+    
+    // Format date to a reliable string ID
+    private func formatDateID(_ date: Date) -> String {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        return "\(components.year ?? 0)-\(components.month ?? 0)-\(components.day ?? 0)"
     }
 }
 
@@ -282,6 +585,8 @@ struct DateCircleView: View {
     let isToday: Bool
     let hasEntry: Bool
     let dayFormatter: DateFormatter
+    let monthFormatter: DateFormatter
+    let showMonth: Bool
     
     private let weekdayFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -290,7 +595,20 @@ struct DateCircleView: View {
     }()
     
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 2) {
+            // Month if it should be shown
+            if showMonth {
+                Text(monthFormatter.string(from: date))
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(Color("CardText").opacity(0.9))
+                    .padding(.bottom, 2)
+            } else {
+                // Placeholder to maintain spacing
+                Text(" ")
+                    .font(.system(size: 12))
+                    .opacity(0)
+            }
+            
             // Day of week (Mon, Tue, etc)
             Text(weekdayFormatter.string(from: date))
                 .font(.system(size: 14))
@@ -366,4 +684,71 @@ struct JournalSectionPreview: View {
 
 #Preview {
     CalendarView()
-} 
+        .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+        .environmentObject(AppState())
+}
+
+// Helper for preview
+struct PersistenceController {
+    // Shared instance for the app
+    static let shared = PersistenceController()
+    
+    // Preview instance with sample data
+    static var preview: PersistenceController = {
+        let controller = PersistenceController(inMemory: true)
+        
+        // Create 10 sample entries
+        let viewContext = controller.container.viewContext
+        
+        // Sample data for past week
+        let calendar = Calendar.current
+        let today = Date()
+        
+        for dayOffset in -6...0 {
+            if let date = calendar.date(byAdding: .day, value: dayOffset, to: today) {
+                let newEntry = NSEntityDescription.insertNewObject(forEntityName: "JournalEntry", into: viewContext)
+                newEntry.setValue(date, forKey: "date")
+                newEntry.setValue("Preview intention for \(dayOffset)", forKey: "intention")
+                newEntry.setValue("Preview goal for \(dayOffset)", forKey: "goal")
+                
+                // Only add reflection for past days
+                if dayOffset < 0 {
+                    newEntry.setValue("Preview reflection for \(dayOffset)", forKey: "reflection")
+                }
+            }
+        }
+        
+        // Save the context
+        do {
+            try viewContext.save()
+        } catch {
+            let nsError = error as NSError
+            print("Error creating preview data: \(nsError)")
+        }
+        
+        return controller
+    }()
+    
+    let container: NSPersistentContainer
+    
+    init(inMemory: Bool = false) {
+        // Create an in-memory store if specified
+        container = NSPersistentContainer(name: "JournalEntry")
+        
+        if inMemory {
+            // Use in-memory store type
+            let storeDescription = NSPersistentStoreDescription()
+            storeDescription.type = NSInMemoryStoreType
+            container.persistentStoreDescriptions = [storeDescription]
+        }
+        
+        container.loadPersistentStores { description, error in
+            if let error = error as NSError? {
+                print("Error loading persistent stores: \(error)")
+            }
+        }
+        
+        // Configure the view context
+        container.viewContext.automaticallyMergesChangesFromParent = true
+    }
+}

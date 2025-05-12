@@ -20,6 +20,9 @@ class JournalModel: ObservableObject {
     private var goalSaveTimer: Timer?
     private var reflectionSaveTimer: Timer?
     
+    // AppState for cross-view updates
+    static var sharedAppState: AppState? = nil
+    
     init() {
         // Set up publishers to observe text changes and save after a delay
         setupPublishers()
@@ -110,6 +113,13 @@ class JournalModel: ObservableObject {
         default:
             break
         }
+        // Notify AppState of update
+        if let appState = JournalModel.sharedAppState {
+            print("Saving field \(field) and notifying AppState")
+            appState.journalUpdated()
+        } else {
+            print("Warning: AppState not available for update notification")
+        }
     }
     
     @objc private func saveCurrentEntry() {
@@ -121,6 +131,36 @@ class JournalModel: ObservableObject {
             goal: goal,
             reflection: reflection
         )
+        // Notify AppState of update
+        if let appState = JournalModel.sharedAppState {
+            print("Saving all fields and notifying AppState")
+            appState.journalUpdated()
+        } else {
+            print("Warning: AppState not available for update notification")
+        }
+    }
+    
+    // Public method for explicit saving triggered by the Complete button
+    func saveAllFields() {
+        print("EXPLICIT SAVE: User clicked Complete button")
+        guard let entry = currentEntry else {
+            print("No current entry, creating one")
+            currentEntry = coreDataManager.getOrCreateTodaysEntry()
+            saveAllFields()
+            return
+        }
+        
+        print("Saving journal with intention: \(intention.prefix(10))..., goal: \(goal.prefix(10))..., reflection: \(reflection.prefix(10))...")
+        
+        coreDataManager.updateJournalEntryFields(
+            entry,
+            intention: intention,
+            goal: goal,
+            reflection: reflection
+        )
+        
+        // We don't update AppState here - the view will do it directly
+        print("Journal explicitly saved by user action")
     }
     
     @objc private func checkAndUpdateForDateChange() {

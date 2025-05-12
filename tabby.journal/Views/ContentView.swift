@@ -4,6 +4,7 @@ import Foundation
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @StateObject private var appState = AppState()
     
     // Create a stub model for non-dependent views
     class JournalModelStub: ObservableObject {
@@ -17,11 +18,13 @@ struct ContentView: View {
     var body: some View {
         TabView {
             JournalView()
+                .environmentObject(appState)
                 .tabItem {
                     Label("Journal", systemImage: "book.fill")
                 }
             
             CalendarView()
+                .environmentObject(appState)
                 .tabItem {
                     Label("Calendar", systemImage: "calendar")
                 }

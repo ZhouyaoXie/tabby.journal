@@ -6,16 +6,10 @@ import CoreData
 import Foundation
 
 struct JournalView: View {
-    // Create the model directly here 
-    @StateObject private var journalModel = JournalModelStub()
+    @StateObject private var journalModel = JournalModel()
     @FocusState private var focusedField: Field?
-    
-    // Simple stub for when the real model isn't available
-    class JournalModelStub: ObservableObject {
-        @Published var intention: String = ""
-        @Published var goal: String = ""
-        @Published var reflection: String = ""
-    }
+    @EnvironmentObject var appState: AppState
+    @State private var showCompleteBanner: Bool = false
     
     enum Field: Hashable {
         case intention, goal, reflection
@@ -23,47 +17,99 @@ struct JournalView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    Spacer().frame(height: 12)
-                    // Intention Section
-                    SectionCard(
-                        icon: "house.fill",
-                        title: "Intention",
-                        placeholder: "What do you want to focus on today?",
-                        text: $journalModel.intention,
-                        field: .intention
-                    )
-                    .focused($focusedField, equals: .intention)
-                    
-                    // Goal Section
-                    SectionCard(
-                        icon: "checkmark.seal.fill",
-                        title: "Goal",
-                        placeholder: "What are 2-3 tasks you want to work on today?",
-                        text: $journalModel.goal,
-                        field: .goal
-                    )
-                    .focused($focusedField, equals: .goal)
-                    
-                    // Reflection Section
-                    SectionCard(
-                        icon: "book.closed.fill",
-                        title: "Reflection",
-                        placeholder: "What did you learn about yourself today? What adjustments will you make for the next day?",
-                        text: $journalModel.reflection,
-                        field: .reflection
-                    )
-                    .focused($focusedField, equals: .reflection)
-                    
-                    Spacer(minLength: 24)
+            ZStack {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        Spacer().frame(height: 12)
+                        // Intention Section
+                        SectionCard(
+                            icon: "house.fill",
+                            title: "Intention",
+                            placeholder: "What do you want to focus on today?",
+                            text: $journalModel.intention,
+                            field: .intention
+                        )
+                        .focused($focusedField, equals: .intention)
+                        
+                        // Goal Section
+                        SectionCard(
+                            icon: "checkmark.seal.fill",
+                            title: "Goal",
+                            placeholder: "What are 2-3 tasks you want to work on today?",
+                            text: $journalModel.goal,
+                            field: .goal
+                        )
+                        .focused($focusedField, equals: .goal)
+                        
+                        // Reflection Section
+                        SectionCard(
+                            icon: "book.closed.fill",
+                            title: "Reflection",
+                            placeholder: "What did you learn about yourself today? What adjustments will you make for the next day?",
+                            text: $journalModel.reflection,
+                            field: .reflection
+                        )
+                        .focused($focusedField, equals: .reflection)
+                        
+                        // Complete Button
+                        Button(action: {
+                            // Save all fields
+                            journalModel.saveAllFields()
+                            // Update AppState
+                            appState.journalUpdated()
+                            // Show confirmation banner
+                            withAnimation {
+                                showCompleteBanner = true
+                            }
+                            // Hide keyboard
+                            focusedField = nil
+                            // Hide banner after delay
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                withAnimation {
+                                    showCompleteBanner = false
+                                }
+                            }
+                        }) {
+                            Text("Complete Journal")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color(red: 0.4, green: 0.3, blue: 0.6))
+                                .cornerRadius(12)
+                        }
+                        .padding(.top, 10)
+                        .padding(.horizontal, 20)
+                        
+                        Spacer(minLength: 24)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 8)
-            }
-            .background(Color("PageBackground").ignoresSafeArea())
-            .onTapGesture {
-                focusedField = nil
+                .background(Color("PageBackground").ignoresSafeArea())
+                .onTapGesture {
+                    focusedField = nil
+                }
+                
+                // Completion confirmation banner
+                if showCompleteBanner {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Journal saved!")
+                                .font(.subheadline.bold())
+                                .foregroundColor(.white)
+                        }
+                        .padding()
+                        .background(Color.black.opacity(0.8))
+                        .cornerRadius(20)
+                        .padding(.bottom, 20)
+                    }
+                    .transition(.move(edge: .bottom))
+                    .zIndex(1)
+                }
             }
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
@@ -81,6 +127,11 @@ struct JournalView: View {
                         .year()
                 )
             )
+        }
+        .onAppear {
+            // Make sure the model has access to our AppState
+            print("JournalView appeared, assigning AppState to JournalModel")
+            JournalModel.sharedAppState = appState
         }
     }
 }
