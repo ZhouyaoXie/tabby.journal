@@ -46,10 +46,6 @@ struct CalendarView: View {
     @State private var currentReflection: String = ""
     @State private var hasLoadedData: Bool = false
     
-    // Store entries with dates for quicker UI updates
-    @State private var entriesByDate: [Date: NSManagedObject] = [:]
-    @State private var lastRefreshTime: Date = Date()
-    
     // Format for the header (Mon, Aug 17)
     private let dateHeaderFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -199,9 +195,7 @@ struct CalendarView: View {
                                         .onTapGesture {
                                             withAnimation(.easeInOut(duration: 0.3)) {
                                                 selectedDate = date
-                                                if isDateNearEdge(date) {
-                                                    updateVisibleDates(around: date)
-                                                }
+                                                loadJournalEntry(for: date)
                                             }
                                         }
                                     }
@@ -280,11 +274,10 @@ struct CalendarView: View {
                     updateVisibleDates(around: Date())
                 }
                 
-                prefetchJournalEntries()
                 loadJournalEntry(for: selectedDate)
             }
             .onChange(of: displayDates) { _ in
-                prefetchJournalEntries()
+                loadJournalEntry(for: selectedDate)
             }
             .onChange(of: appState.journalUpdateId) { newId in
                 print("===== CALENDAR REFRESH =====")
@@ -292,11 +285,6 @@ struct CalendarView: View {
                 print("Timestamp: \(appState.lastJournalUpdate)")
                 print("Refreshing calendar data...")
                 
-                // Clear cache completely on update
-                entriesByDate.removeAll()
-                
-                // Refresh the data
-                prefetchJournalEntries()
                 loadJournalEntry(for: selectedDate)
                 
                 print("Calendar refresh complete")
@@ -439,50 +427,6 @@ struct CalendarView: View {
         return firstDayOfNextMonth
     }
     
-    // Prefetch journal entries for the visible date range
-    private func prefetchJournalEntries() {
-        guard !displayDates.isEmpty else { return }
-        
-        print("Prefetching journal entries after update at: \(Date())")
-        
-        // Get first and last date from our display dates
-        let firstDate = displayDates.first ?? Date()
-        let lastDate = displayDates.last ?? Date()
-        
-        // Fetch all entries within the range
-        let entries = fetchJournalEntries(from: firstDate, to: lastDate)
-        
-        print("Found \(entries.count) entries in date range")
-        
-        // Clear the old cache and rebuild it
-        entriesByDate.removeAll()
-        
-        entries.forEach { entry in
-            if let date = entry.value(forKey: "date") as? Date {
-                // Store by start of day to ensure accurate date matching
-                let calendar = Calendar.current
-                let startOfDay = calendar.startOfDay(for: date)
-                entriesByDate[startOfDay] = entry
-            }
-        }
-        
-        // If the selected date entry was fetched, update the UI
-        if Calendar.current.isDateInToday(selectedDate) {
-            // For today, always try to load the latest version of the entry
-            loadJournalEntry(for: selectedDate)
-        } else {
-            // For other dates, check if it's in our prefetched cache
-            let calendar = Calendar.current
-            let selectedStartOfDay = calendar.startOfDay(for: selectedDate)
-            
-            if entriesByDate.keys.contains(where: { calendar.isDate($0, inSameDayAs: selectedStartOfDay) }) {
-                loadJournalEntry(for: selectedDate)
-            }
-        }
-        
-        lastRefreshTime = Date()
-    }
-    
     // Load journal entry for the selected date from Core Data
     private func loadJournalEntry(for date: Date) {
         if let entry = fetchJournalEntry(for: date) {
@@ -503,19 +447,8 @@ struct CalendarView: View {
         hasLoadedData = true
     }
     
-    // Check if a journal entry exists for a date using the cache when possible
+    // Check if a journal entry exists for a date
     private func checkForJournalEntry(_ date: Date) -> Bool {
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        
-        // First check our cache
-        for (entryDate, _) in entriesByDate {
-            if calendar.isDate(entryDate, inSameDayAs: startOfDay) {
-                return true
-            }
-        }
-        
-        // If not in cache, check Core Data
         return fetchJournalEntry(for: date) != nil
     }
     
