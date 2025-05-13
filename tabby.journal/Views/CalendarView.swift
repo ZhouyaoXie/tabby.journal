@@ -122,23 +122,19 @@ struct CalendarView: View {
             ZStack {
                 Color("PageBackground").edgesIgnoringSafeArea(.all)
                 
-                VStack(spacing: 0) {
-                    // Date header and selector section with light purple background
-                    VStack(spacing: 16) {
+                VStack(spacing: 8) {
+                    // Header and date picker with fixed height
+                    VStack(spacing: 8) {
                         // Selected date display
                         HStack {
                             Text(dateHeaderFormatter.string(from: selectedDate))
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
                                 .foregroundColor(Color("CardText"))
-                            
                             Spacer()
-                            
                             Button(action: {
-                                // Reset to today
                                 withAnimation {
                                     selectedDate = Date()
-                                    // Scroll to today without regenerating all dates
                                     updateVisibleDates(around: selectedDate)
                                 }
                             }) {
@@ -148,13 +144,10 @@ struct CalendarView: View {
                             }
                         }
                         .padding(.horizontal)
-                        
                         // Date navigation section
                         HStack {
-                            // Previous month button
                             Button(action: {
                                 withAnimation {
-                                    // Navigate to first day of previous month
                                     if let previousMonth = getFirstDayOfPreviousMonth(from: selectedDate) {
                                         selectedDate = previousMonth
                                         updateVisibleDates(around: selectedDate)
@@ -167,20 +160,13 @@ struct CalendarView: View {
                                     .padding(8)
                                     .background(Circle().fill(Color("CardBackground")))
                             }
-                            
                             Spacer()
-                            
-                            // Show current month and year
                             Text(formatMonthYear(selectedDate))
                                 .font(.headline)
                                 .foregroundColor(Color("CardText"))
-                            
                             Spacer()
-                            
-                            // Next month button
                             Button(action: {
                                 withAnimation {
-                                    // Navigate to first day of next month
                                     if let nextMonth = getFirstDayOfNextMonth(from: selectedDate) {
                                         selectedDate = nextMonth
                                         updateVisibleDates(around: selectedDate)
@@ -195,11 +181,10 @@ struct CalendarView: View {
                             }
                         }
                         .padding(.horizontal)
-                        
-                        // Horizontal date picker with extended range
+                        // Horizontal date picker
                         ScrollViewReader { scrollView in
                             ScrollView(.horizontal, showsIndicators: false) {
-                                LazyHStack(spacing: 18) {
+                                LazyHStack(spacing: 16) {
                                     ForEach(displayDates, id: \.self) { date in
                                         DateCircleView(
                                             date: date,
@@ -214,8 +199,6 @@ struct CalendarView: View {
                                         .onTapGesture {
                                             withAnimation(.easeInOut(duration: 0.3)) {
                                                 selectedDate = date
-                                                
-                                                // Update visible dates if we're near an edge
                                                 if isDateNearEdge(date) {
                                                     updateVisibleDates(around: date)
                                                 }
@@ -224,16 +207,12 @@ struct CalendarView: View {
                                     }
                                 }
                                 .padding(.horizontal)
-                                .padding(.bottom, 8)
+                                .padding(.bottom, 16)
                             }
                             .onAppear {
-                                // Ensure selectedDate is visible in the center of the screen
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                     updateVisibleDates(around: selectedDate)
-                                    
-                                    // Use two-phase approach with longer delay for more reliable scrolling
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                        print("Attempting to scroll to \(dateHeaderFormatter.string(from: selectedDate)) with ID \(formatDateID(selectedDate))")
                                         withAnimation {
                                             scrollView.scrollTo(formatDateID(selectedDate), anchor: .center)
                                         }
@@ -241,18 +220,14 @@ struct CalendarView: View {
                                 }
                             }
                             .onChange(of: selectedDate) { newDate in
-                                // Scroll to newly selected date with better timing
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                     withAnimation {
                                         scrollView.scrollTo(formatDateID(newDate), anchor: .center)
                                     }
                                 }
-                                
-                                // Load journal entry for the selected date
                                 loadJournalEntry(for: newDate)
                             }
                             .onChange(of: displayDates) { _ in
-                                // When display dates change, ensure selected date is visible
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                     withAnimation {
                                         scrollView.scrollTo(formatDateID(selectedDate), anchor: .center)
@@ -261,54 +236,35 @@ struct CalendarView: View {
                             }
                         }
                     }
-                    .padding(.top, 16)
-                    .padding(.bottom, 8)
                     .background(Color("CardBackground").opacity(0.6))
-                    
+                    .frame(height:200) // Fixed height for header/date picker
+
                     // Journal entry display area
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
-                            // Intention Section
                             JournalSectionPreview(
                                 title: "Intention",
                                 icon: "house.fill",
-                                content: currentIntention.isEmpty ? "What do you want to focus on today?" : currentIntention,
+                                content: currentIntention.isEmpty ? "" : currentIntention,
                                 isEmpty: currentIntention.isEmpty
                             )
-                            .onTapGesture {
-                                // Navigate to JournalView and focus on intention field
-                                navigateToJournalView()
-                            }
-                            
-                            // Goal Section
+                            .onTapGesture { navigateToJournalView() }
                             JournalSectionPreview(
                                 title: "Goal",
                                 icon: "checkmark.seal.fill",
-                                content: currentGoal.isEmpty ? "What are 2-3 tasks you want to work on today?" : currentGoal,
+                                content: currentGoal.isEmpty ? "" : currentGoal,
                                 isEmpty: currentGoal.isEmpty
                             )
-                            .onTapGesture {
-                                // Navigate to JournalView and focus on goal field
-                                navigateToJournalView()
-                            }
-                            
-                            // Reflection Section
+                            .onTapGesture { navigateToJournalView() }
                             JournalSectionPreview(
                                 title: "Reflection",
                                 icon: "book.closed.fill",
-                                content: currentReflection.isEmpty ? "What did you learn about yourself today? What adjustments will you make for the next day?" : currentReflection,
+                                content: currentReflection.isEmpty ? "" : currentReflection,
                                 isEmpty: currentReflection.isEmpty
                             )
-                            .onTapGesture {
-                                // Navigate to JournalView and focus on reflection field
-                                navigateToJournalView()
-                            }
-                            
-                            Spacer(minLength: 40)
+                            .onTapGesture { navigateToJournalView() }
                         }
                         .padding(.horizontal)
-                        .padding(.top)
-                        .frame(maxWidth: .infinity, alignment: .top)
                     }
                 }
             }
@@ -595,7 +551,7 @@ struct DateCircleView: View {
     }()
     
     var body: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 0) {
             // Month if it should be shown
             if showMonth {
                 Text(monthFormatter.string(from: date))
@@ -641,7 +597,6 @@ struct DateCircleView: View {
             .animation(.spring(), value: isSelected)
         }
         .frame(width: 50)
-        .padding(.vertical, 4)
     }
 }
 
