@@ -122,6 +122,7 @@ struct CalendarView: View {
                 VStack(spacing: 8) {
                     // Header and date picker with fixed height
                     VStack(spacing: 8) {
+                        // Spacer().frame(height: 12)
                         // Selected date display
                         HStack {
                             Text(dateHeaderFormatter.string(from: selectedDate))
@@ -263,7 +264,7 @@ struct CalendarView: View {
                     }
                 }
             }
-            .navigationTitle("Journal History")
+            .navigationTitle("🐾")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
@@ -515,7 +516,7 @@ struct DateCircleView: View {
                     Circle()
                         .fill(Color(red: 0.4, green: 0.3, blue: 0.6).opacity(0.5))
                         .frame(width: 6, height: 6)
-                        .offset(y: 18)
+                        .offset(y: 16)
                 }
                 
                 Text(dayFormatter.string(from: date))
