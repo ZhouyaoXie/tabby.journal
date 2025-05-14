@@ -5,12 +5,13 @@ struct SettingsView: View {
         NavigationView {
             VStack {
                 Text("Settings")
-                    .font(.title)
+                    .font(.garamondBold(size: 24))
                     .padding()
                 
                 Spacer()
                 
                 Text("Settings options will go here")
+                    .font(.garamond(size: 16))
                     .foregroundColor(.gray)
                 
                 Spacer()

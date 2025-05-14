@@ -1,6 +1,7 @@
 import SwiftUI
 import CoreData
 import Foundation
+import SwiftUI // for Font extension
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext

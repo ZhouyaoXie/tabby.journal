@@ -5,6 +5,9 @@ import CoreData
 // Import Foundation instead of UIKit
 import Foundation
 
+// Import the shared font extension
+import SwiftUI
+
 struct JournalView: View {
     @StateObject private var journalModel = JournalModel()
     @FocusState private var focusedField: Field?
@@ -127,6 +130,19 @@ struct JournalView: View {
                         .year()
                 )
             )
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(Date.now.formatted(
+                        .dateTime
+                            .month(.wide)
+                            .day()
+                            .year()
+                    ))
+                    .font(.garamondBold(size: 18))
+                    .foregroundColor(Color("CardText"))
+                }
+            }
         }
         .onAppear {
             // Make sure the model has access to our AppState
@@ -156,10 +172,10 @@ struct SectionCard: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 12) {
                 Image(systemName: icon)
-                    .font(.system(size: 26, weight: .medium))
+                    .font(.garamondBold(size: 22))
                     .foregroundColor(Color("CardText"))
                 Text(title)
-                    .font(.title3).bold()
+                    .font(.garamondBold(size: 20))
                     .foregroundColor(Color("CardText"))
             }
             ZStack(alignment: .topLeading) {
@@ -178,7 +194,7 @@ struct SectionCard: View {
                 
                 if text.isEmpty {
                     Text(placeholder)
-                        .italic()
+                        .font(.garamondItalic(size: 16))
                         .foregroundColor(Color("PlaceholderText"))
                         .padding(EdgeInsets(top: 16, leading: 12, bottom: 0, trailing: 0))
                         .allowsHitTesting(false)

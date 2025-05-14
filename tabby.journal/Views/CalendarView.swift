@@ -1,9 +1,10 @@
 import SwiftUI
 import CoreData
 import Combine
-
-// Import the missing JournalModel reference
 import Foundation
+
+// Import the shared font extension
+// (Assume Font+Garamond.swift is in the module)
 
 struct CalendarView: View {
     // Constants for date range
@@ -124,7 +125,7 @@ struct CalendarView: View {
                         // Selected date display
                         HStack {
                             Text(dateHeaderFormatter.string(from: selectedDate))
-                                .font(.largeTitle)
+                                .font(.garamondBold(size: 34))
                                 .fontWeight(.bold)
                                 .foregroundColor(Color("CardText"))
                             Spacer()
@@ -158,7 +159,7 @@ struct CalendarView: View {
                             }
                             Spacer()
                             Text(formatMonthYear(selectedDate))
-                                .font(.headline)
+                                .font(.garamondBold(size: 20))
                                 .foregroundColor(Color("CardText"))
                             Spacer()
                             Button(action: {
@@ -488,19 +489,19 @@ struct DateCircleView: View {
             // Month if it should be shown
             if showMonth {
                 Text(monthFormatter.string(from: date))
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.garamond(size: 12))
                     .foregroundColor(Color("CardText").opacity(0.9))
                     .padding(.bottom, 2)
             } else {
                 // Placeholder to maintain spacing
                 Text(" ")
-                    .font(.system(size: 12))
+                    .font(.garamond(size: 12))
                     .opacity(0)
             }
             
             // Day of week (Mon, Tue, etc)
             Text(weekdayFormatter.string(from: date))
-                .font(.system(size: 14))
+                .font(.garamond(size: 14))
                 .foregroundColor(Color("CardText").opacity(0.8))
             
             // Date number with circular background
@@ -514,11 +515,11 @@ struct DateCircleView: View {
                     Circle()
                         .fill(Color(red: 0.4, green: 0.3, blue: 0.6).opacity(0.5))
                         .frame(width: 6, height: 6)
-                        .offset(y: 12)
+                        .offset(y: 18)
                 }
                 
                 Text(dayFormatter.string(from: date))
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.garamond(size: 20))
                     .foregroundColor(isSelected ? .white : (isToday ? Color("CardText") : Color("CardText").opacity(0.8)))
             }
             .overlay(
@@ -549,15 +550,15 @@ struct JournalSectionPreview: View {
                     .foregroundColor(Color("CardText"))
                 
                 Text(title)
-                    .font(.headline)
+                    .font(.garamondBold(size: 20))
                     .foregroundColor(Color("CardText"))
             }
             
             // Content preview
             Text(content)
-                .font(.subheadline)
+                .font(.garamond(size: 16))
                 .foregroundColor(isEmpty ? Color.gray.opacity(0.7) : Color("CardText"))
-                .italic(isEmpty)
+                .font(.garamondItalic(size: 16))
                 .lineLimit(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(10)
