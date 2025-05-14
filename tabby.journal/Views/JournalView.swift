@@ -19,7 +19,7 @@ struct JournalView: View {
         NavigationView {
             ZStack {
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 24) {
                         Text(
                             Date.now.formatted(
                                 .dateTime
@@ -28,9 +28,12 @@ struct JournalView: View {
                                     .year()
                             )
                         )
-                        .font(.garamondBold(size: 34))
+                        .font(.garamondBold(size: 32))
                         .fontWeight(.bold)
                         .foregroundColor(Color("CardText"))
+                        .padding(.top, 32)
+                        .padding(.leading, 16)
+                        .padding(.bottom, 8)
                         // Intention Section
                         SectionCard(
                             icon: "house.fill",
@@ -130,10 +133,11 @@ struct JournalView: View {
                     }
                 }
             }
-            .navigationTitle("🐈")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
+            .navigationTitle("")
+            // .navigationTitle("🐈")
+            // #if os(iOS)
+            // .navigationBarTitleDisplayMode(.inline)
+            // #endif
             // .navigationTitle(
             //     Date.now.formatted(
             //         .dateTime

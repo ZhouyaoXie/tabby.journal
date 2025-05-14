@@ -126,9 +126,12 @@ struct CalendarView: View {
                         // Selected date display
                         HStack {
                             Text(dateHeaderFormatter.string(from: selectedDate))
-                                .font(.garamondBold(size: 34))
+                                .font(.garamondBold(size: 32))
                                 .fontWeight(.bold)
                                 .foregroundColor(Color("CardText"))
+                                // .padding(.top, 32)
+                                // .padding(.leading, 16)
+                                // .padding(.bottom, 8)
                             Spacer()
                             Button(action: {
                                 withAnimation {
@@ -142,6 +145,9 @@ struct CalendarView: View {
                             }
                         }
                         .padding(.horizontal)
+                        .padding(.top, 32)
+                        // .padding(.leading, 16)
+                        .padding(.bottom, 8)
                         // Date navigation section
                         HStack {
                             Button(action: {
@@ -264,10 +270,11 @@ struct CalendarView: View {
                     }
                 }
             }
-            .navigationTitle("🐾")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
+            .navigationTitle("")
+            // .navigationTitle("🐾")
+            // #if os(iOS)
+            // .navigationBarTitleDisplayMode(.inline)
+            // #endif
             .onAppear {
                 print("CalendarView appeared, preparing to refresh data")
                 
