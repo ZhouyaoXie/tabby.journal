@@ -9,7 +9,7 @@ struct JournalView: View {
     @StateObject private var journalModel = JournalModel()
     @FocusState private var focusedField: Field?
     @EnvironmentObject var appState: AppState
-    @State private var showCompleteBanner: Bool = false
+    @State private var showAutoSaveBanner: Bool = false
 
     enum Field: Hashable {
         case intention, goal, reflection
@@ -43,6 +43,9 @@ struct JournalView: View {
                             field: .intention
                         )
                         .focused($focusedField, equals: .intention)
+                        .onChange(of: journalModel.intention) { _ in
+                            autosave()
+                        }
 
                         // Goal Section
                         SectionCard(
@@ -53,6 +56,9 @@ struct JournalView: View {
                             field: .goal
                         )
                         .focused($focusedField, equals: .goal)
+                        .onChange(of: journalModel.goal) { _ in
+                            autosave()
+                        }
 
                         // Reflection Section
                         SectionCard(
@@ -64,36 +70,9 @@ struct JournalView: View {
                             field: .reflection
                         )
                         .focused($focusedField, equals: .reflection)
-
-                        // Complete Button
-                        Button(action: {
-                            // Save all fields
-                            journalModel.saveAllFields()
-                            // Update AppState
-                            appState.journalUpdated()
-                            // Show confirmation banner
-                            withAnimation {
-                                showCompleteBanner = true
-                            }
-                            // Hide keyboard
-                            focusedField = nil
-                            // Hide banner after delay
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                withAnimation {
-                                    showCompleteBanner = false
-                                }
-                            }
-                        }) {
-                            Text("Complete Journal")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color(red: 0.4, green: 0.3, blue: 0.6))
-                                .cornerRadius(12)
+                        .onChange(of: journalModel.reflection) { _ in
+                            autosave()
                         }
-                        .padding(.top, 10)
-                        .padding(.horizontal, 20)
 
                         Spacer(minLength: 24)
                     }
@@ -105,14 +84,14 @@ struct JournalView: View {
                     focusedField = nil
                 }
 
-                // Completion confirmation banner
-                if showCompleteBanner {
+                // Autosave confirmation banner
+                if showAutoSaveBanner {
                     VStack {
                         Spacer()
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
-                            Text("Journal saved!")
+                            Text("Journal autosaved!")
                                 .font(.subheadline.bold())
                                 .foregroundColor(.white)
                         }
@@ -134,38 +113,24 @@ struct JournalView: View {
                 }
             }
             .navigationTitle("")
-            // .navigationTitle("🐈")
-            // #if os(iOS)
-            // .navigationBarTitleDisplayMode(.inline)
-            // #endif
-            // .navigationTitle(
-            //     Date.now.formatted(
-            //         .dateTime
-            //             .month(.wide)
-            //             .day()
-            //             .year()
-            //     )
-            // )
-            // .navigationBarTitleDisplayMode(.inline)
-            // .toolbar {
-            //     ToolbarItem(placement: .principal) {
-            //         Text(
-            //             Date.now.formatted(
-            //                 .dateTime
-            //                     .month(.wide)
-            //                     .day()
-            //                     .year()
-            //             )
-            //         )
-            //         .font(.garamondBold(size: 18))
-            //         .foregroundColor(Color("CardText"))
-            //     }
-            // }
         }
         .onAppear {
             // Make sure the model has access to our AppState
             print("JournalView appeared, assigning AppState to JournalModel")
             JournalModel.sharedAppState = appState
+        }
+    }
+
+    private func autosave() {
+        journalModel.saveAllFields()
+        appState.journalUpdated()
+        // withAnimation {
+        //     showAutoSaveBanner = true
+        // }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            withAnimation {
+                showAutoSaveBanner = false
+            }
         }
     }
 }
@@ -186,6 +151,22 @@ struct SectionCard: View {
     let placeholder: String
     @Binding var text: String
     let field: JournalView.Field
+    
+    // Minimum height for the text editor
+    private let minHeight: CGFloat = 90
+    
+    // Calculate height based on text content
+    private func calculateHeight(for text: String) -> CGFloat {
+        let baseHeight = minHeight
+        let approximateLineHeight: CGFloat = 20 // Approximate line height for the font
+        let approximateCharsPerLine: CGFloat = 40 // Approximate characters per line
+        
+        // Calculate number of lines needed (rough estimate)
+        let numberOfLines = max(1, ceil(CGFloat(text.count) / approximateCharsPerLine))
+        let estimatedHeight = max(baseHeight, numberOfLines * approximateLineHeight)
+        
+        return estimatedHeight
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -198,13 +179,13 @@ struct SectionCard: View {
                     .foregroundColor(Color("CardText"))
             }
             ZStack(alignment: .topLeading) {
-                // White background for text area
+                // White background for text area with dynamic height
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.white)
-                    .frame(height: 90)
-
+                    .frame(height: calculateHeight(for: text))
+                
                 TextEditor(text: $text)
-                    .frame(height: 90)
+                    .frame(minHeight: calculateHeight(for: text))
                     .padding(4)
                     .font(.garamond(size: 16))
                     .background(Color.white)

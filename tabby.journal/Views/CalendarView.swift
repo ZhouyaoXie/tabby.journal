@@ -239,7 +239,7 @@ struct CalendarView: View {
                         }
                     }
                     .background(Color("CardBackground").opacity(0.6))
-                    .frame(height:200) // Fixed height for header/date picker
+                    .frame(height:220) // Fixed height for header/date picker
 
                     // Journal entry display area
                     ScrollView {
@@ -567,7 +567,6 @@ struct JournalSectionPreview: View {
                 .font(.garamond(size: 16))
                 .foregroundColor(isEmpty ? Color.gray.opacity(0.7) : Color("CardText"))
                 .font(.garamondItalic(size: 16))
-                .lineLimit(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(10)
                 .background(Color.white.opacity(0.8))
