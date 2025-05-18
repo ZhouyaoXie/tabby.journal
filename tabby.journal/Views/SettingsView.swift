@@ -87,7 +87,7 @@ struct SettingsView: View {
                         HStack() {
                             Image(systemName: "square.and.arrow.up")
                                 .font(.system(size: 18, weight: .medium))
-                            Text("Export journals as JSON")
+                            Text("Export Journals")
                                 .font(.garamondBold(size: 20))
                                 .foregroundColor(Color("CardText"))
                         }

@@ -16,24 +16,38 @@ struct ContentView: View {
     
     @StateObject private var journalModel = JournalModelStub()
     
+    init() {
+        #if canImport(UIKit)
+        let appearance = UITabBarAppearance()
+        appearance.configureWithTransparentBackground()
+        UITabBar.appearance().standardAppearance = appearance
+        if #available(iOS 15.0, *) {
+            UITabBar.appearance().scrollEdgeAppearance = appearance
+        }
+        #endif
+    }
+    
     var body: some View {
-        TabView {
-            JournalView()
-                .environmentObject(appState)
-                .tabItem {
-                    Label("Journal", systemImage: "book.fill")
-                }
-            
-            CalendarView()
-                .environmentObject(appState)
-                .tabItem {
-                    Label("Calendar", systemImage: "calendar")
-                }
-            
-            SettingsView()
-                .tabItem {
-                    Label("Setting", systemImage: "gear")
-                }
+        ZStack {
+            Color("PageBackground").ignoresSafeArea()
+            TabView {
+                JournalView()
+                    .environmentObject(appState)
+                    .tabItem {
+                        Label("Journal", systemImage: "book.fill")
+                    }
+                
+                CalendarView()
+                    .environmentObject(appState)
+                    .tabItem {
+                        Label("Calendar", systemImage: "calendar")
+                    }
+                
+                SettingsView()
+                    .tabItem {
+                        Label("Setting", systemImage: "gear")
+                    }
+            }
         }
     }
 }
