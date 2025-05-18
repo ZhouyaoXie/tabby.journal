@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var notificationPermissionDenied = false
     @State private var showBanner = false
     @State private var bannerMessage = ""
+    @State private var exportButtonPressed = false
     @Environment(\.managedObjectContext) private var viewContext
     
     private let intentionId = "intention_reminder"
@@ -40,10 +41,17 @@ struct SettingsView: View {
                                 .font(.garamond(size: 16))
                                 .foregroundColor(Color("CardText"))
                             Spacer()
-                            Toggle("", isOn: $settingsModel.isIntentionReminderOn)
+                            Toggle("", isOn: Binding(
+                                get: { settingsModel.isIntentionReminderOn },
+                                set: { newValue in
+                                    settingsModel.isIntentionReminderOn = newValue
+                                    triggerLightHaptic()
+                                })
+                            )
                                 .toggleStyle(SwitchToggleStyle(tint: Color(red: 0.4, green: 0.3, blue: 0.6)))
                                 .frame(width: 60)
                                 .disabled(notificationPermissionDenied)
+                                .animation(.easeInOut, value: settingsModel.isIntentionReminderOn)
                             DatePicker("", selection: $settingsModel.intentionReminderTime, displayedComponents: .hourAndMinute)
                                 .labelsHidden()
                                 .disabled(!settingsModel.isIntentionReminderOn || notificationPermissionDenied)
@@ -51,6 +59,7 @@ struct SettingsView: View {
                                 .background(Color.gray.opacity(settingsModel.isIntentionReminderOn ? 0.1 : 0.2))
                                 .cornerRadius(8)
                                 .foregroundColor(settingsModel.isIntentionReminderOn ? Color.blue : Color.gray)
+                                .animation(.easeInOut, value: settingsModel.isIntentionReminderOn)
                         }
                         // Reflection Reminder Row
                         HStack(alignment: .center, spacing: 12) {
@@ -61,10 +70,17 @@ struct SettingsView: View {
                                 .font(.garamond(size: 16))
                                 .foregroundColor(Color("CardText"))
                             Spacer()
-                            Toggle("", isOn: $settingsModel.isReflectionReminderOn)
+                            Toggle("", isOn: Binding(
+                                get: { settingsModel.isReflectionReminderOn },
+                                set: { newValue in
+                                    settingsModel.isReflectionReminderOn = newValue
+                                    triggerLightHaptic()
+                                })
+                            )
                                 .toggleStyle(SwitchToggleStyle(tint: Color(red: 0.4, green: 0.3, blue: 0.6)))
                                 .frame(width: 60)
                                 .disabled(notificationPermissionDenied)
+                                .animation(.easeInOut, value: settingsModel.isReflectionReminderOn)
                             DatePicker("", selection: $settingsModel.reflectionReminderTime, displayedComponents: .hourAndMinute)
                                 .labelsHidden()
                                 .disabled(!settingsModel.isReflectionReminderOn || notificationPermissionDenied)
@@ -72,6 +88,7 @@ struct SettingsView: View {
                                 .background(Color.gray.opacity(settingsModel.isReflectionReminderOn ? 0.1 : 0.2))
                                 .cornerRadius(8)
                                 .foregroundColor(settingsModel.isReflectionReminderOn ? Color.blue : Color.gray)
+                                .animation(.easeInOut, value: settingsModel.isReflectionReminderOn)
                         }
                     }
                     .padding(16)
@@ -80,14 +97,23 @@ struct SettingsView: View {
                     .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
                     .padding(.horizontal, 12)
                     
-                    // Export Data Button
+                    // Export Data Button with scale animation
                     Button(action: {
-                        exportData()
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            exportButtonPressed = true
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                exportButtonPressed = false
+                            }
+                            triggerExportHaptic()
+                            exportData()
+                        }
                     }) {
                         HStack() {
                             Image(systemName: "square.and.arrow.up")
                                 .font(.system(size: 18, weight: .medium))
-                            Text("Export Journals")
+                            Text("Export data")
                                 .font(.garamondBold(size: 20))
                                 .foregroundColor(Color("CardText"))
                         }
@@ -98,6 +124,8 @@ struct SettingsView: View {
                         .cornerRadius(12)
                         .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
                         .padding(.horizontal, 12)
+                        .scaleEffect(exportButtonPressed ? 0.96 : 1.0)
+                        .animation(.easeInOut(duration: 0.15), value: exportButtonPressed)
                     }
                     .padding(.top, 8)
                     
@@ -127,12 +155,13 @@ struct SettingsView: View {
                         .background(Color.black.opacity(0.85))
                         .cornerRadius(16)
                         .padding(.top, 60)
-                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                         .zIndex(1)
                     }
                     Spacer()
                 }
             )
+            .animation(.easeInOut(duration: 0.3), value: showBanner)
         }
         // Intention Reminder Logic
         .onChange(of: settingsModel.isIntentionReminderOn) { isOn in
@@ -221,6 +250,21 @@ struct SettingsView: View {
         }
     }
     
+    // Haptic feedback for toggles
+    private func triggerLightHaptic() {
+        #if canImport(UIKit)
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+        #endif
+    }
+    // Haptic feedback for export
+    private func triggerExportHaptic(success: Bool = true) {
+        #if canImport(UIKit)
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(success ? .success : .error)
+        #endif
+    }
+    
     private func exportData() {
         // Defensive: Ensure context is valid and not running in preview
         #if DEBUG
@@ -239,6 +283,7 @@ struct SettingsView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation { showBanner = false }
             }
+            triggerExportHaptic(success: false)
             return
         }
         DispatchQueue.main.async {
@@ -248,12 +293,14 @@ struct SettingsView: View {
                 if FileManager.default.fileExists(atPath: url.path),
                    let fileData = try? Data(contentsOf: url), fileData.count > 0 {
                     shareExportedFile(url: url)
+                    triggerExportHaptic(success: true)
                 } else {
                     bannerMessage = "Failed to export data."
                     withAnimation { showBanner = true }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                         withAnimation { showBanner = false }
                     }
+                    triggerExportHaptic(success: false)
                 }
             } catch {
                 bannerMessage = "Failed to export data."
@@ -261,6 +308,7 @@ struct SettingsView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                     withAnimation { showBanner = false }
                 }
+                triggerExportHaptic(success: false)
             }
         }
     }

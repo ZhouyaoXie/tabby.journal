@@ -169,7 +169,7 @@ struct SectionCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.garamondBold(size: 22))
@@ -211,7 +211,7 @@ struct SectionCard: View {
         .padding(14)
         .background(Color("CardBackground"))
         .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+        .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)
     }
 }
 
