@@ -6,8 +6,6 @@ struct SettingsView: View {
     @State private var notificationPermissionDenied = false
     @State private var showBanner = false
     @State private var bannerMessage = ""
-    @State private var showExportSheet = false
-    @State private var exportFileURL: URL?
     @Environment(\.managedObjectContext) private var viewContext
     
     private let intentionId = "intention_reminder"
@@ -89,7 +87,7 @@ struct SettingsView: View {
                         HStack() {
                             Image(systemName: "square.and.arrow.up")
                                 .font(.system(size: 18, weight: .medium))
-                            Text("Export data")
+                            Text("Export journals as JSON")
                                 .font(.garamondBold(size: 20))
                                 .foregroundColor(Color("CardText"))
                         }
@@ -135,12 +133,6 @@ struct SettingsView: View {
                     Spacer()
                 }
             )
-            .sheet(isPresented: $showExportSheet) {
-                if let url = exportFileURL, FileManager.default.fileExists(atPath: url.path),
-                   let fileData = try? Data(contentsOf: url), fileData.count > 0 {
-                    ActivityViewController(activityItems: [url])
-                }
-            }
         }
         // Intention Reminder Logic
         .onChange(of: settingsModel.isIntentionReminderOn) { isOn in
@@ -255,8 +247,7 @@ struct SettingsView: View {
                 // Ensure file exists and is non-empty before presenting
                 if FileManager.default.fileExists(atPath: url.path),
                    let fileData = try? Data(contentsOf: url), fileData.count > 0 {
-                    exportFileURL = url
-                    showExportSheet = true
+                    shareExportedFile(url: url)
                 } else {
                     bannerMessage = "Failed to export data."
                     withAnimation { showBanner = true }
@@ -273,19 +264,25 @@ struct SettingsView: View {
             }
         }
     }
-}
 
-#if canImport(UIKit)
-import UIKit
-struct ActivityViewController: UIViewControllerRepresentable {
-    let activityItems: [Any]
-    let applicationActivities: [UIActivity]? = nil
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
+    private func shareExportedFile(url: URL) {
+        #if canImport(UIKit)
+        guard let root = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow })?.rootViewController else {
+            bannerMessage = "Unable to share file."
+            withAnimation { showBanner = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation { showBanner = false }
+            }
+            return
+        }
+        let activityVC = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+        root.present(activityVC, animated: true, completion: nil)
+        #endif
     }
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
-#endif
 
 #Preview {
     SettingsView()

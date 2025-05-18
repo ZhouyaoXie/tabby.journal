@@ -18,10 +18,16 @@ class JournalBackupManager {
         let entries = try context.fetch(fetchRequest)
         let exportEntries: [JournalEntryExport] = entries.compactMap { entry in
             guard let date = entry.value(forKey: "date") as? Date else { return nil }
-            let intention = entry.value(forKey: "intention") as? String
-            let goal = entry.value(forKey: "goal") as? String
-            let reflection = entry.value(forKey: "reflection") as? String
-            return JournalEntryExport(date: date, intention: intention, goal: goal, reflection: reflection)
+            let intention = (entry.value(forKey: "intention") as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let goal = (entry.value(forKey: "goal") as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let reflection = (entry.value(forKey: "reflection") as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            // Only include if at least one field is non-empty
+            let hasContent = [intention, goal, reflection].contains { $0?.isEmpty == false }
+            if hasContent {
+                return JournalEntryExport(date: date, intention: intention, goal: goal, reflection: reflection)
+            } else {
+                return nil
+            }
         }
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
