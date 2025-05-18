@@ -1,10 +1,14 @@
 import SwiftUI
+import CoreData
 
 struct SettingsView: View {
     @StateObject private var settingsModel = SettingsModel()
     @State private var notificationPermissionDenied = false
     @State private var showBanner = false
     @State private var bannerMessage = ""
+    @State private var showExportSheet = false
+    @State private var exportFileURL: URL?
+    @Environment(\.managedObjectContext) private var viewContext
     
     private let intentionId = "intention_reminder"
     private let reflectionId = "reflection_reminder"
@@ -77,6 +81,28 @@ struct SettingsView: View {
                     .cornerRadius(18)
                     .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
                     .padding(.horizontal, 12)
+                    
+                    // Export Data Button
+                    Button(action: {
+                        exportData()
+                    }) {
+                        HStack() {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 18, weight: .medium))
+                            Text("Export data")
+                                .font(.garamondBold(size: 20))
+                                .foregroundColor(Color("CardText"))
+                        }
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color("CardBackground").opacity(0.85))
+                        .cornerRadius(12)
+                        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
+                        .padding(.horizontal, 12)
+                    }
+                    .padding(.top, 8)
+                    
                     Spacer()
                 }
             }
@@ -109,6 +135,12 @@ struct SettingsView: View {
                     Spacer()
                 }
             )
+            .sheet(isPresented: $showExportSheet) {
+                if let url = exportFileURL, FileManager.default.fileExists(atPath: url.path),
+                   let fileData = try? Data(contentsOf: url), fileData.count > 0 {
+                    ActivityViewController(activityItems: [url])
+                }
+            }
         }
         // Intention Reminder Logic
         .onChange(of: settingsModel.isIntentionReminderOn) { isOn in
@@ -196,7 +228,64 @@ struct SettingsView: View {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
     }
+    
+    private func exportData() {
+        // Defensive: Ensure context is valid and not running in preview
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+            bannerMessage = "Export not available in preview."
+            withAnimation { showBanner = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation { showBanner = false }
+            }
+            return
+        }
+        #endif
+        guard viewContext.persistentStoreCoordinator != nil else {
+            bannerMessage = "Export failed: Data store not available."
+            withAnimation { showBanner = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation { showBanner = false }
+            }
+            return
+        }
+        DispatchQueue.main.async {
+            do {
+                let url = try JournalBackupManager.shared.backupAllEntries(context: viewContext)
+                // Ensure file exists and is non-empty before presenting
+                if FileManager.default.fileExists(atPath: url.path),
+                   let fileData = try? Data(contentsOf: url), fileData.count > 0 {
+                    exportFileURL = url
+                    showExportSheet = true
+                } else {
+                    bannerMessage = "Failed to export data."
+                    withAnimation { showBanner = true }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        withAnimation { showBanner = false }
+                    }
+                }
+            } catch {
+                bannerMessage = "Failed to export data."
+                withAnimation { showBanner = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    withAnimation { showBanner = false }
+                }
+            }
+        }
+    }
 }
+
+#if canImport(UIKit)
+import UIKit
+struct ActivityViewController: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    let applicationActivities: [UIActivity]? = nil
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
+    }
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+#endif
 
 #Preview {
     SettingsView()
