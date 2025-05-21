@@ -643,13 +643,21 @@ struct JournalSectionPreview: View {
                     .foregroundColor(Color("CardText"))
                 Spacer()
                 if isEditing {
-                    Button(action: onComplete) {
+                    Button(action: {
+                        let generator = UIImpactFeedbackGenerator(style: .medium)
+                        generator.impactOccurred()
+                        onComplete()
+                    }) {
                         Image(systemName: "checkmark.seal.fill")
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(Color(red: 0.4, green: 0.3, blue: 0.6))
                     }
                 } else {
-                    Button(action: onEdit) {
+                    Button(action: {
+                        let generator = UIImpactFeedbackGenerator(style: .medium)
+                        generator.impactOccurred()
+                        onEdit()
+                    }) {
                         Image(systemName: "square.and.pencil")
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(Color(red: 0.4, green: 0.3, blue: 0.6))
