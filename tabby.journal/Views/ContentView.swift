@@ -6,6 +6,7 @@ import SwiftUI // for Font extension
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var appState = AppState()
+    @State private var selectedTab: Int = 0
     
     // Create a stub model for non-dependent views
     class JournalModelStub: ObservableObject {
@@ -30,23 +31,29 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             Color("PageBackground").ignoresSafeArea()
-            TabView {
+            TabView(selection: $selectedTab) {
                 JournalView()
                     .environmentObject(appState)
                     .tabItem {
                         Label("Journal", systemImage: "book.fill")
                     }
+                    .tag(0)
                 
                 CalendarView()
                     .environmentObject(appState)
                     .tabItem {
                         Label("Calendar", systemImage: "calendar")
                     }
+                    .tag(1)
                 
                 SettingsView()
                     .tabItem {
                         Label("Setting", systemImage: "gear")
                     }
+                    .tag(2)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("OpenJournalTab"))) { _ in
+                selectedTab = 0
             }
         }
     }

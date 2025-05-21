@@ -38,4 +38,9 @@ class NotificationManager {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
         print("Notification cancelled: \(id)")
     }
+
+    // Handle notification response to open Journal tab
+    func handleNotificationResponse(_ response: UNNotificationResponse) {
+        NotificationCenter.default.post(name: Notification.Name("OpenJournalTab"), object: nil)
+    }
 } 

@@ -153,7 +153,7 @@ struct SectionCard: View {
     let field: JournalView.Field
     
     // Minimum height for the text editor
-    private let minHeight: CGFloat = 90
+    private let minHeight: CGFloat = 95
     
     // Calculate height based on text content
     private func calculateHeight(for text: String) -> CGFloat {
@@ -170,7 +170,7 @@ struct SectionCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 12) {
+            HStack(spacing: 6) {
                 Image(systemName: icon)
                     .font(.garamondBold(size: 22))
                     .foregroundColor(Color("CardText"))
@@ -208,7 +208,7 @@ struct SectionCard: View {
                     .stroke(Color("CardBackground").opacity(0.7), lineWidth: 1)
             )
         }
-        .padding(14)
+        .padding(12)
         .background(Color("CardBackground"))
         .cornerRadius(16)
         .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)

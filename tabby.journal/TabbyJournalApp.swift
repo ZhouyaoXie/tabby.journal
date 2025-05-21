@@ -3,16 +3,20 @@ import CoreData
 import UIKit
 
 @main
-struct TabbyJournal: App {
-    let persistentContainer = NSPersistentContainer(name: "JournalEntry")
+struct TabbyJournalApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
-    init() {
-        persistentContainer.loadPersistentStores { description, error in
+    let persistentContainer: NSPersistentContainer = {
+        let container = NSPersistentContainer(name: "JournalEntry")
+        container.loadPersistentStores { _, error in
             if let error = error {
-                fatalError("Unable to load persistent stores: \(error)")
+                fatalError("Unresolved error \(error)")
             }
         }
-        
+        return container
+    }()
+    
+    init() {
         // Configure navigation bar appearance
         let cardTextColor = UIColor(Color("CardText"))
         UINavigationBar.appearance().largeTitleTextAttributes = [
@@ -25,8 +29,7 @@ struct TabbyJournal: App {
     
     var body: some Scene {
         WindowGroup {
-            let contentView = ContentView()
-            contentView
+            ContentView()
                 .environment(\.managedObjectContext, persistentContainer.viewContext)
         }
     }

@@ -169,7 +169,7 @@ struct SettingsView: View {
                 NotificationManager.shared.requestAuthorization { granted in
                     if granted {
                         scheduleIntentionNotification()
-                        showBannerWithMessage("Intention reminder scheduled")
+                        // showBannerWithMessage("Intention reminder scheduled")
                     } else {
                         settingsModel.isIntentionReminderOn = false
                         notificationPermissionDenied = true
@@ -177,13 +177,13 @@ struct SettingsView: View {
                 }
             } else {
                 NotificationManager.shared.cancelNotification(id: intentionId)
-                showBannerWithMessage("Intention reminder canceled")
+                // showBannerWithMessage("Intention reminder canceled")
             }
         }
         .onChange(of: settingsModel.intentionReminderTime) { _ in
             if settingsModel.isIntentionReminderOn {
                 scheduleIntentionNotification()
-                showBannerWithMessage("Intention reminder updated")
+                // showBannerWithMessage("Intention reminder updated")
             }
         }
         // Reflection Reminder Logic
@@ -192,7 +192,7 @@ struct SettingsView: View {
                 NotificationManager.shared.requestAuthorization { granted in
                     if granted {
                         scheduleReflectionNotification()
-                        showBannerWithMessage("Reflection reminder scheduled")
+                        // showBannerWithMessage("Reflection reminder scheduled")
                     } else {
                         settingsModel.isReflectionReminderOn = false
                         notificationPermissionDenied = true
@@ -200,13 +200,13 @@ struct SettingsView: View {
                 }
             } else {
                 NotificationManager.shared.cancelNotification(id: reflectionId)
-                showBannerWithMessage("Reflection reminder canceled")
+                // showBannerWithMessage("Reflection reminder canceled")
             }
         }
         .onChange(of: settingsModel.reflectionReminderTime) { _ in
             if settingsModel.isReflectionReminderOn {
                 scheduleReflectionNotification()
-                showBannerWithMessage("Reflection reminder updated")
+                // showBannerWithMessage("Reflection reminder updated")
             }
         }
     }
