@@ -47,6 +47,14 @@ struct CalendarView: View {
     @State private var currentReflection: String = ""
     @State private var hasLoadedData: Bool = false
     
+    // --- Inline Editing State ---
+    @State private var isEditingIntention: Bool = false
+    @State private var isEditingGoal: Bool = false
+    @State private var isEditingReflection: Bool = false
+    @State private var editedIntention: String = ""
+    @State private var editedGoal: String = ""
+    @State private var editedReflection: String = ""
+    
     // Format for the header (Mon, Aug 17)
     private let dateHeaderFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -244,27 +252,63 @@ struct CalendarView: View {
                     // Journal entry display area
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
+                            // Intention Section
                             JournalSectionPreview(
                                 title: "Intention",
                                 icon: "house.fill",
-                                content: currentIntention.isEmpty ? "" : currentIntention,
-                                isEmpty: currentIntention.isEmpty
+                                content: isEditingIntention ? editedIntention : (currentIntention.isEmpty ? "" : currentIntention),
+                                isEmpty: currentIntention.isEmpty,
+                                isEditing: isEditingIntention,
+                                onEdit: {
+                                    editedIntention = currentIntention
+                                    isEditingIntention = true
+                                },
+                                onComplete: {
+                                    saveEditedSection(section: "intention", text: editedIntention)
+                                    isEditingIntention = false
+                                },
+                                onTextChange: { newText in
+                                    editedIntention = newText
+                                }
                             )
-                            .onTapGesture { navigateToJournalView() }
+                            // Goal Section
                             JournalSectionPreview(
                                 title: "Goal",
                                 icon: "checkmark.seal.fill",
-                                content: currentGoal.isEmpty ? "" : currentGoal,
-                                isEmpty: currentGoal.isEmpty
+                                content: isEditingGoal ? editedGoal : (currentGoal.isEmpty ? "" : currentGoal),
+                                isEmpty: currentGoal.isEmpty,
+                                isEditing: isEditingGoal,
+                                onEdit: {
+                                    editedGoal = currentGoal
+                                    isEditingGoal = true
+                                },
+                                onComplete: {
+                                    saveEditedSection(section: "goal", text: editedGoal)
+                                    isEditingGoal = false
+                                },
+                                onTextChange: { newText in
+                                    editedGoal = newText
+                                }
                             )
-                            .onTapGesture { navigateToJournalView() }
+                            // Reflection Section
                             JournalSectionPreview(
                                 title: "Reflection",
                                 icon: "book.closed.fill",
-                                content: currentReflection.isEmpty ? "" : currentReflection,
-                                isEmpty: currentReflection.isEmpty
+                                content: isEditingReflection ? editedReflection : (currentReflection.isEmpty ? "" : currentReflection),
+                                isEmpty: currentReflection.isEmpty,
+                                isEditing: isEditingReflection,
+                                onEdit: {
+                                    editedReflection = currentReflection
+                                    isEditingReflection = true
+                                },
+                                onComplete: {
+                                    saveEditedSection(section: "reflection", text: editedReflection)
+                                    isEditingReflection = false
+                                },
+                                onTextChange: { newText in
+                                    editedReflection = newText
+                                }
                             )
-                            .onTapGesture { navigateToJournalView() }
                         }
                         .padding(.horizontal)
                     }
@@ -474,6 +518,39 @@ struct CalendarView: View {
         let components = calendar.dateComponents([.year, .month, .day], from: date)
         return "\(components.year ?? 0)-\(components.month ?? 0)-\(components.day ?? 0)"
     }
+    
+    // --- Save edited section to Core Data ---
+    private func saveEditedSection(section: String, text: String) {
+        // Fetch or create the journal entry for the selected date
+        let calendar = Calendar.current
+        let startOfDay: Date = calendar.startOfDay(for: selectedDate)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "JournalEntry")
+        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date < %@", startOfDay as NSDate, endOfDay as NSDate)
+        fetchRequest.fetchLimit = 1
+        do {
+            let results = try viewContext.fetch(fetchRequest)
+            let entry: NSManagedObject
+            if let existing = results.first {
+                entry = existing
+            } else {
+                let entity = NSEntityDescription.entity(forEntityName: "JournalEntry", in: viewContext)!
+                entry = NSManagedObject(entity: entity, insertInto: viewContext)
+                entry.setValue(startOfDay, forKey: "date")
+            }
+            entry.setValue(text, forKey: section)
+            try viewContext.save()
+            // Update local state
+            switch section {
+            case "intention": currentIntention = text
+            case "goal": currentGoal = text
+            case "reflection": currentReflection = text
+            default: break
+            }
+        } catch {
+            print("Error saving edited section: \(error)")
+        }
+    }
 }
 
 // Individual date circle component
@@ -548,33 +625,70 @@ struct JournalSectionPreview: View {
     let icon: String
     let content: String
     let isEmpty: Bool
+    let isEditing: Bool
+    let onEdit: () -> Void
+    let onComplete: () -> Void
+    let onTextChange: (String) -> Void
+    
+    @FocusState private var isFocused: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Section header
             HStack(spacing: 10) {
                 Image(systemName: icon)
                     .font(.system(size: 18, weight: .medium))
                     .foregroundColor(Color("CardText"))
-                
                 Text(title)
                     .font(.garamondBold(size: 20))
                     .foregroundColor(Color("CardText"))
+                Spacer()
+                if isEditing {
+                    Button(action: onComplete) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(Color(red: 0.4, green: 0.3, blue: 0.6))
+                    }
+                } else {
+                    Button(action: onEdit) {
+                        Image(systemName: "square.and.pencil")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(Color(red: 0.4, green: 0.3, blue: 0.6))
+                    }
+                }
             }
-            
-            // Content preview
-            Text(content)
-                .font(.garamond(size: 16))
-                .foregroundColor(isEmpty ? Color.gray.opacity(0.7) : Color("CardText"))
-                .font(.garamondItalic(size: 16))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(10)
-                .background(Color.white.opacity(0.8))
-                .cornerRadius(8)
+            if isEditing {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.white)
+                        .opacity(0.95)
+                    TextEditor(text: Binding(
+                        get: { content },
+                        set: { onTextChange($0) }
+                    ))
+                    .frame(minHeight: 60, maxHeight: 120)
+                    .padding(4)
+                    .font(.garamond(size: 16))
+                    .background(Color.white)
+                    .foregroundColor(Color("CardText"))
+                    .cornerRadius(12)
+                    .colorScheme(.light)  // Force light mode
+                }
+                .padding(6)
+            } else {
+                Text(content)
+                    .font(.garamond(size: 16))
+                    .foregroundColor(isEmpty ? Color.gray.opacity(0.7) : Color("CardText"))
+                    .font(.garamondItalic(size: 16))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(10)
+                    .background(Color.white.opacity(0.8))
+                    .cornerRadius(12)
+            }
         }
         .padding(10)
         .background(Color("CardBackground").opacity(0.7))
         .cornerRadius(12)
+        .animation(.easeInOut, value: isEditing)
     }
 }
 
