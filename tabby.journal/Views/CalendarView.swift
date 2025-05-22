@@ -2,6 +2,7 @@ import SwiftUI
 import CoreData
 import Combine
 import Foundation
+import WidgetKit
 
 // Import the shared font extension
 // (Assume Font+Garamond.swift is in the module)
@@ -547,6 +548,11 @@ struct CalendarView: View {
             case "reflection": currentReflection = text
             default: break
             }
+            // --- Write to App Group UserDefaults if editing today ---
+            if calendar.isDateInToday(selectedDate) {
+                AppGroupJournalHelper.saveToday(intention: section == "intention" ? text : currentIntention, goal: section == "goal" ? text : currentGoal)
+                WidgetCenter.shared.reloadAllTimelines()
+            }
         } catch {
             print("Error saving edited section: \(error)")
         }
@@ -768,5 +774,18 @@ struct PersistenceController {
         
         // Configure the view context
         container.viewContext.automaticallyMergesChangesFromParent = true
+    }
+}
+
+// --- App Group Helper ---
+struct AppGroupJournalHelper {
+    static let appGroupId = "group.com.yourdomain.tabbyjournal" // <-- Replace with your actual App Group ID
+    static let intentionKey = "widget_intention"
+    static let goalKey = "widget_goal"
+    static func saveToday(intention: String, goal: String) {
+        if let userDefaults = UserDefaults(suiteName: appGroupId) {
+            userDefaults.setValue(intention, forKey: intentionKey)
+            userDefaults.setValue(goal, forKey: goalKey)
+        }
     }
 }
