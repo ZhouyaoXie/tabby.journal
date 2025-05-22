@@ -7,78 +7,106 @@
 
 import WidgetKit
 import SwiftUI
+import Intents
 
-struct Provider: TimelineProvider {
-    func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), emoji: "😀")
+// MARK: - Shared Data Model (App Group UserDefaults)
+struct JournalWidgetEntry: TimelineEntry {
+    let date: Date
+    let intention: String?
+    let goal: String?
+}
+
+// Helper to fetch today's intention/goal from App Group UserDefaults
+struct JournalWidgetDataProvider {
+    static let appGroupId = "group.com.yourdomain.tabbyjournal" // <-- Replace with your actual App Group ID
+    static let intentionKey = "widget_intention"
+    static let goalKey = "widget_goal"
+    
+    static func fetchTodayData() -> (String?, String?) {
+        guard let userDefaults = UserDefaults(suiteName: appGroupId) else { return (nil, nil) }
+        let intention = userDefaults.string(forKey: intentionKey)
+        let goal = userDefaults.string(forKey: goalKey)
+        return (intention, goal)
     }
+}
 
-    func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let entry = SimpleEntry(date: Date(), emoji: "😀")
+// MARK: - Timeline Provider
+struct JournalProvider: TimelineProvider {
+    func placeholder(in context: Context) -> JournalWidgetEntry {
+        JournalWidgetEntry(date: Date(), intention: "Set your intention", goal: "Set your goal")
+    }
+    
+    func getSnapshot(in context: Context, completion: @escaping (JournalWidgetEntry) -> ()) {
+        let (intention, goal) = JournalWidgetDataProvider.fetchTodayData()
+        let entry = JournalWidgetEntry(date: Date(), intention: intention, goal: goal)
         completion(entry)
     }
-
-    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        var entries: [SimpleEntry] = []
-
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, emoji: "😀")
-            entries.append(entry)
-        }
-
-        let timeline = Timeline(entries: entries, policy: .atEnd)
+    
+    func getTimeline(in context: Context, completion: @escaping (Timeline<JournalWidgetEntry>) -> ()) {
+        let (intention, goal) = JournalWidgetDataProvider.fetchTodayData()
+        let entry = JournalWidgetEntry(date: Date(), intention: intention, goal: goal)
+        // Refresh every 30 minutes
+        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: Date()) ?? Date().addingTimeInterval(1800)
+        let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
         completion(timeline)
     }
-
-//    func relevances() async -> WidgetRelevances<Void> {
-//        // Generate a list containing the contexts this widget is relevant in.
-//    }
 }
 
-struct SimpleEntry: TimelineEntry {
-    let date: Date
-    let emoji: String
-}
-
-struct TabbyJournalWidgetEntryView : View {
-    var entry: Provider.Entry
-
+// MARK: - Widget Entry View (Step 1: Key UI Elements)
+struct JournalWidgetEntryView: View {
+    var entry: JournalProvider.Entry
     var body: some View {
-        VStack {
-            Text("Time:")
-            Text(entry.date, style: .time)
-
-            Text("Emoji:")
-            Text(entry.emoji)
+        VStack(alignment: .leading, spacing: 16) {
+            // Intention Section
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: "square.dashed")
+                    .font(.title2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("INTENTION")
+                        .font(.headline)
+                        .textCase(.uppercase)
+                    Text(entry.intention ?? "No intention set")
+                        .font(.body)
+                        .lineLimit(2)
+                }
+            }
+            // Goals Section
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: "checkmark.seal")
+                    .font(.title2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("GOALS")
+                        .font(.headline)
+                        .textCase(.uppercase)
+                    Text(entry.goal ?? "No goal set")
+                        .font(.body)
+                        .lineLimit(2)
+                }
+            }
+            Spacer()
+            // Widget Name (placeholder)
+            Text("Widget Name")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
+        .padding()
     }
 }
 
+@main
 struct TabbyJournalWidget: Widget {
     let kind: String = "TabbyJournalWidget"
-
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: Provider()) { entry in
-            if #available(iOS 17.0, *) {
-                TabbyJournalWidgetEntryView(entry: entry)
-                    .containerBackground(.fill.tertiary, for: .widget)
-            } else {
-                TabbyJournalWidgetEntryView(entry: entry)
-                    .padding()
-                    .background()
-            }
+        StaticConfiguration(kind: kind, provider: JournalProvider()) { entry in
+            JournalWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("My Widget")
-        .description("This is an example widget.")
+        .configurationDisplayName("Tabby Journal")
+        .description("See your daily intention or goal at a glance.")
+        .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
 
 #Preview(as: .systemSmall) {
     TabbyJournalWidget()
-} timeline: {
-    SimpleEntry(date: .now, emoji: "😀")
-    SimpleEntry(date: .now, emoji: "🤩")
 }
