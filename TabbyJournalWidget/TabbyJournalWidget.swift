@@ -52,45 +52,61 @@ struct JournalProvider: TimelineProvider {
     }
 }
 
-// MARK: - Widget Entry View (Step 1: Key UI Elements)
+// MARK: - Widget Entry View (Step 2/3: Refined UI)
 struct JournalWidgetEntryView: View {
     var entry: JournalProvider.Entry
+    @Environment(\.widgetFamily) var family
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Intention Section
-            HStack(alignment: .top, spacing: 8) {
-                Image(systemName: "square.dashed")
-                    .font(.title2)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("INTENTION")
-                        .font(.headline)
-                        .textCase(.uppercase)
-                    Text(entry.intention ?? "No intention set")
-                        .font(.body)
+        ZStack {
+            // Optionally, keep a very subtle gradient overlay for style
+            // LinearGradient(
+            //     gradient: Gradient(colors: [Color(.systemGray6), Color(red: 0.93, green: 0.90, blue: 0.98)]),
+            //     startPoint: .topLeading,
+            //     endPoint: .bottomTrailing
+            // )
+            VStack(alignment: .leading, spacing: family == .systemSmall ? 5 : 12) {
+                // Intention Section
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(alignment: .center, spacing: 4) {
+                        Image(systemName: "square.dashed")
+                            .font(.system(size: family == .systemSmall ? 18 : 22, weight: .regular))
+                            .foregroundColor(Color(red: 0.4, green: 0.3, blue: 0.6))
+                        Text("INTENTION")
+                            .font(.custom("EBGaramond-Regular", size: family == .systemSmall ? 13 : 16))
+                            .foregroundColor(Color(red: 0.2, green: 0.18, blue: 0.25))
+                            .textCase(.uppercase)
+                    }
+                    Text(entry.intention?.isEmpty == false ? entry.intention! : "Open tabby.journal to set your intention")
+                        .font(.custom("EBGaramond-Regular", size: family == .systemSmall ? 13 : 15))
+                        .foregroundColor(Color(red: 0.25, green: 0.22, blue: 0.32))
                         .lineLimit(2)
                 }
-            }
-            // Goals Section
-            HStack(alignment: .top, spacing: 8) {
-                Image(systemName: "checkmark.seal")
-                    .font(.title2)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("GOALS")
-                        .font(.headline)
-                        .textCase(.uppercase)
-                    Text(entry.goal ?? "No goal set")
-                        .font(.body)
+                // Goals Section
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(alignment: .center, spacing: 4) {
+                        Image(systemName: "checkmark.seal")
+                            .font(.system(size: family == .systemSmall ? 18 : 22, weight: .regular))
+                            .foregroundColor(Color(red: 0.4, green: 0.3, blue: 0.6))
+                        Text("GOALS")
+                            .font(.custom("EBGaramond-Regular", size: family == .systemSmall ? 13 : 16))
+                            .foregroundColor(Color(red: 0.2, green: 0.18, blue: 0.25))
+                            .textCase(.uppercase)
+                    }
+                    Text(entry.goal?.isEmpty == false ? entry.goal! : "Open tabby.journal to set your goal")
+                        .font(.custom("EBGaramond-Regular", size: family == .systemSmall ? 13 : 15))
+                        .foregroundColor(Color(red: 0.25, green: 0.22, blue: 0.32))
                         .lineLimit(2)
                 }
+                Spacer(minLength: family == .systemSmall ? 2 : 8)
+                // Widget Name (bottom label)
+                Text("Tabby Journal")
+                    .font(.custom("EBGaramond-Regular", size: 11))
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
             }
-            Spacer()
-            // Widget Name (placeholder)
-            Text("Widget Name")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .center)
+            .padding(family == .systemSmall ? 2 : 10)
         }
-        .padding()
+        .containerBackground(.background, for: .widget)
     }
 }
 
@@ -107,6 +123,14 @@ struct TabbyJournalWidget: Widget {
     }
 }
 
-#Preview(as: .systemSmall) {
+#Preview(as: .systemSmall, widget: {
     TabbyJournalWidget()
-}
+}, timeline: {
+    JournalWidgetEntry(date: .now, intention: "Focus on one thing at a time", goal: "- work on LLM project for an hour; - work on tabby.journal at night")
+})
+
+#Preview(as: .systemMedium, widget: {
+    TabbyJournalWidget()
+}, timeline: {
+    JournalWidgetEntry(date: .now, intention: "Write code", goal: "Fix all bugs")
+})
