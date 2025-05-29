@@ -59,11 +59,11 @@ struct JournalWidgetEntryView: View {
     var body: some View {
         ZStack {
             // Optionally, keep a very subtle gradient overlay for style
-            // LinearGradient(
-            //     gradient: Gradient(colors: [Color(.systemGray6), Color(red: 0.93, green: 0.90, blue: 0.98)]),
-            //     startPoint: .topLeading,
-            //     endPoint: .bottomTrailing
-            // )
+//             LinearGradient(
+//                 gradient: Gradient(colors: [Color(.systemGray6), Color(red: 0.93, green: 0.90, blue: 0.98)]),
+//                 startPoint: .topLeading,
+//                 endPoint: .bottomTrailing
+//             )
             VStack(alignment: .leading, spacing: family == .systemSmall ? 5 : 12) {
                 // Intention Section
                 VStack(alignment: .leading, spacing: 4) {
