@@ -1,5 +1,7 @@
 # Tabby Journal
 
+-- Your mindful day, one entry at a time.  -- 
+
 Tabby Journal is a beautifully simple and privacy-focused daily journaling app for iOS. Designed for mindful individuals, students, and anyone seeking clarity and growth, Tabby Journal helps you set intentions, track goals, and reflect on your day—all in a calming, distraction-free interface.
 
 ## Features
@@ -24,6 +26,6 @@ Tabby Journal is a beautifully simple and privacy-focused daily journaling app f
 - Enable reminders to build a journaling habit
 - Export your data anytime for backup or sharing
 
----
+## Privacy Policy 
 
-**Tabby Journal** — Your mindful day, one entry at a time. 
+tabby.journal does not collect any user data. All user data is stored locally. Once you delete the app, all user data will be removed as well. 
