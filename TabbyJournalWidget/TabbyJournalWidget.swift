@@ -78,6 +78,7 @@ struct SmallWidgetView: View {
                     // Header
                     Text(title.uppercased())
                         .font(.garamondBold(size: 11))
+                        .fontWeight(.bold)
                         .kerning(1.7)
                         .foregroundColor(Color.gray)
                         .multilineTextAlignment(.center)
@@ -86,6 +87,7 @@ struct SmallWidgetView: View {
                     if isDefaultMessage {
                         Text(content)
                             .font(.garamondBold(size: 13))
+                            .fontWeight(.bold)
                             .foregroundColor(Color.gray)
                             .multilineTextAlignment(.center)
                             .kerning(1)
