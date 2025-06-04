@@ -30,7 +30,6 @@ struct JournalWidgetDataProvider {
     }
 }
 
-// MARK: - Timeline Provider
 struct JournalProvider: TimelineProvider {
     func placeholder(in context: Context) -> JournalWidgetEntry {
         JournalWidgetEntry(date: Date(), intention: "Set your intention", goal: "Set your goal")
@@ -52,25 +51,15 @@ struct JournalProvider: TimelineProvider {
     }
 }
 
-// MARK: - Widget Entry View (Step 2/3: Refined UI)
-struct JournalWidgetEntryView: View {
+struct MediumWidgetEntryView: View {
     var entry: JournalProvider.Entry
     @Environment(\.widgetFamily) var family
     var body: some View {
         ZStack {
-            // Optionally, keep a very subtle gradient overlay for style
-//             LinearGradient(
-//                 gradient: Gradient(colors: [Color(.systemGray6), Color(red: 0.93, green: 0.90, blue: 0.98)]),
-//                 startPoint: .topLeading,
-//                 endPoint: .bottomTrailing
-//             )
             VStack(alignment: .leading, spacing: family == .systemSmall ? 5 : 12) {
                 // Intention Section
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .center, spacing: 4) {
-                        Image(systemName: "square.dashed")
-                            .font(.system(size: family == .systemSmall ? 18 : 22, weight: .regular))
-                            .foregroundColor(Color(red: 0.4, green: 0.3, blue: 0.6))
                         Text("INTENTION")
                             .font(.custom("EBGaramond-Regular", size: family == .systemSmall ? 13 : 16))
                             .foregroundColor(Color(red: 0.2, green: 0.18, blue: 0.25))
@@ -84,9 +73,6 @@ struct JournalWidgetEntryView: View {
                 // Goals Section
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .center, spacing: 4) {
-                        Image(systemName: "checkmark.seal")
-                            .font(.system(size: family == .systemSmall ? 18 : 22, weight: .regular))
-                            .foregroundColor(Color(red: 0.4, green: 0.3, blue: 0.6))
                         Text("GOALS")
                             .font(.custom("EBGaramond-Regular", size: family == .systemSmall ? 13 : 16))
                             .foregroundColor(Color(red: 0.2, green: 0.18, blue: 0.25))
@@ -110,27 +96,133 @@ struct JournalWidgetEntryView: View {
     }
 }
 
-@main
-struct TabbyJournalWidget: Widget {
-    let kind: String = "TabbyJournalWidget"
+struct MediumWidget: Widget {
+    let kind: String = "MediumWidget"
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: JournalProvider()) { entry in
-            JournalWidgetEntryView(entry: entry)
+            MediumWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("Tabby Journal")
-        .description("See your daily intention or goal at a glance.")
+        .configurationDisplayName("tabby.journal")
+        .description("See your daily intention and goal at a glance.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
 
-#Preview(as: .systemSmall, widget: {
-    TabbyJournalWidget()
+// MARK: - Reusable Small Widget View
+struct SmallWidgetView: View {
+    let title: String
+    let content: String
+    
+    private func contentFontSize(for text: String) -> CGFloat {
+        let count = text.count
+        if count <= 45 { return 17 }
+        else if count <= 70 { return 15 }
+        else { return 13 }
+    }
+    
+    var body: some View {
+        GeometryReader { geometry in
+            VStack {
+                Spacer(minLength: 0)
+                VStack(spacing: 10) {
+                    // Header
+                    Text(title.uppercased())
+                        .font(.custom("EBGaramond-Bold", size: 11))
+                        .kerning(1.7)
+                        .foregroundColor(Color.gray)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                    // Main content
+                    Text(content)
+                        .font(.custom("EBGaramond-Bold", size: contentFontSize(for: content)))
+                        .foregroundColor(Color.primary)
+                        .multilineTextAlignment(.center)
+                        .kerning(1)
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 6)
+                        .lineLimit(5)
+                        .truncationMode(.tail)
+                }
+                Spacer(minLength: 0)
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+        }
+        .padding(.bottom, 8)
+        .containerBackground(.background, for: .widget)
+    }
+}
+
+// MARK: - Intention Only Widget
+struct IntentionWidgetEntryView: View {
+    var entry: JournalProvider.Entry
+    var body: some View {
+        SmallWidgetView(
+            title: "Intention",
+            content: entry.intention?.isEmpty == false ? entry.intention! : "Open tabby.journal to set your intention"
+        )
+    }
+}
+
+struct IntentionWidget: Widget {
+    let kind: String = "TabbyJournalIntentionWidget"
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: JournalProvider()) { entry in
+            IntentionWidgetEntryView(entry: entry)
+        }
+        .configurationDisplayName("Intention (tabby.journal)")
+        .description("See your daily intention at a glance.")
+        .supportedFamilies([.systemSmall])
+    }
+}
+
+// MARK: - Goal Only Widget
+struct GoalWidgetEntryView: View {
+    var entry: JournalProvider.Entry
+    var body: some View {
+        SmallWidgetView(
+            title: "Goal",
+            content: entry.goal?.isEmpty == false ? entry.goal! : "Open tabby.journal to set your goal"
+        )
+    }
+}
+
+struct GoalWidget: Widget {
+    let kind: String = "TabbyJournalGoalWidget"
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: JournalProvider()) { entry in
+            GoalWidgetEntryView(entry: entry)
+        }
+        .configurationDisplayName("Goal (tabby.journal)")
+        .description("See your daily goal at a glance.")
+        .supportedFamilies([.systemSmall])
+    }
+}
+
+@main
+struct TabbyJournalWidgetBundle: WidgetBundle {
+    @WidgetBundleBuilder
+    var body: some Widget {
+        MediumWidget()
+        IntentionWidget()
+        GoalWidget()
+    }
+}
+
+// MARK: - Previews
+#Preview("Intention Small", as: .systemSmall, widget: {
+    IntentionWidget()
 }, timeline: {
-    JournalWidgetEntry(date: .now, intention: "Focus on one thing at a time", goal: "- work on LLM project for an hour; - work on tabby.journal at night")
+    JournalWidgetEntry(date: .now, intention: "Be present and mindful.", goal: "")
 })
 
-#Preview(as: .systemMedium, widget: {
-    TabbyJournalWidget()
+#Preview("Goal Small", as: .systemSmall, widget: {
+    GoalWidget()
+}, timeline: {
+    JournalWidgetEntry(date: .now, intention: "", goal: "Finish the Tabby Journal widget UI")
+})
+
+#Preview("Medium", as: .systemMedium, widget: {
+    MediumWidget()
 }, timeline: {
     JournalWidgetEntry(date: .now, intention: "Write code", goal: "Fix all bugs")
 })
