@@ -9,6 +9,9 @@ import WidgetKit
 import SwiftUI
 import Intents
 
+let intention_default_message: String = "Click here to set your intention for today!"
+let goal_default_message: String = "Click here to set your goal for today!"
+
 // MARK: - Shared Data Model (App Group UserDefaults)
 struct JournalWidgetEntry: TimelineEntry {
     let date: Date
@@ -18,7 +21,7 @@ struct JournalWidgetEntry: TimelineEntry {
 
 // Helper to fetch today's intention/goal from App Group UserDefaults
 struct JournalWidgetDataProvider {
-    static let appGroupId = "group.com.yourdomain.tabbyjournal" // <-- Replace with your actual App Group ID
+    static let appGroupId = "group.com.yourdomain.tabbyjournal"
     static let intentionKey = "widget_intention"
     static let goalKey = "widget_goal"
     
@@ -51,63 +54,6 @@ struct JournalProvider: TimelineProvider {
     }
 }
 
-struct MediumWidgetEntryView: View {
-    var entry: JournalProvider.Entry
-    @Environment(\.widgetFamily) var family
-    var body: some View {
-        ZStack {
-            VStack(alignment: .leading, spacing: family == .systemSmall ? 5 : 12) {
-                // Intention Section
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(alignment: .center, spacing: 4) {
-                        Text("INTENTION")
-                            .font(.custom("EBGaramond-Regular", size: family == .systemSmall ? 13 : 16))
-                            .foregroundColor(Color(red: 0.2, green: 0.18, blue: 0.25))
-                            .textCase(.uppercase)
-                    }
-                    Text(entry.intention?.isEmpty == false ? entry.intention! : "Open tabby.journal to set your intention")
-                        .font(.custom("EBGaramond-Regular", size: family == .systemSmall ? 13 : 15))
-                        .foregroundColor(Color(red: 0.25, green: 0.22, blue: 0.32))
-                        .lineLimit(2)
-                }
-                // Goals Section
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(alignment: .center, spacing: 4) {
-                        Text("GOALS")
-                            .font(.custom("EBGaramond-Regular", size: family == .systemSmall ? 13 : 16))
-                            .foregroundColor(Color(red: 0.2, green: 0.18, blue: 0.25))
-                            .textCase(.uppercase)
-                    }
-                    Text(entry.goal?.isEmpty == false ? entry.goal! : "Open tabby.journal to set your goal")
-                        .font(.custom("EBGaramond-Regular", size: family == .systemSmall ? 13 : 15))
-                        .foregroundColor(Color(red: 0.25, green: 0.22, blue: 0.32))
-                        .lineLimit(2)
-                }
-                Spacer(minLength: family == .systemSmall ? 2 : 8)
-                // Widget Name (bottom label)
-                Text("Tabby Journal")
-                    .font(.custom("EBGaramond-Regular", size: 11))
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-            }
-            .padding(family == .systemSmall ? 2 : 10)
-        }
-        .containerBackground(.background, for: .widget)
-    }
-}
-
-struct MediumWidget: Widget {
-    let kind: String = "MediumWidget"
-    var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: JournalProvider()) { entry in
-            MediumWidgetEntryView(entry: entry)
-        }
-        .configurationDisplayName("tabby.journal")
-        .description("See your daily intention and goal at a glance.")
-        .supportedFamilies([.systemSmall, .systemMedium])
-    }
-}
-
 // MARK: - Reusable Small Widget View
 struct SmallWidgetView: View {
     let title: String
@@ -118,6 +64,10 @@ struct SmallWidgetView: View {
         if count <= 45 { return 17 }
         else if count <= 70 { return 15 }
         else { return 13 }
+    }
+    
+    private var isDefaultMessage: Bool {
+        content == intention_default_message || content == goal_default_message
     }
     
     var body: some View {
@@ -133,15 +83,27 @@ struct SmallWidgetView: View {
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
                     // Main content
-                    Text(content)
-                        .font(.custom("EBGaramond-Bold", size: contentFontSize(for: content)))
-                        .foregroundColor(Color.primary)
-                        .multilineTextAlignment(.center)
-                        .kerning(1)
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 6)
-                        .lineLimit(5)
-                        .truncationMode(.tail)
+                    if isDefaultMessage {
+                        Text(content)
+                            .font(.custom("EBGaramond-Bold", size: 13))
+                            .foregroundColor(Color.gray)
+                            .multilineTextAlignment(.center)
+                            .kerning(1)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 6)
+                            .lineLimit(4)
+                            .truncationMode(.tail)
+                    } else {
+                        Text(content)
+                            .font(.custom("EBGaramond-Bold", size: contentFontSize(for: content)))
+                            .foregroundColor(Color.primary)
+                            .multilineTextAlignment(.center)
+                            .kerning(1)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 6)
+                            .lineLimit(4)
+                            .truncationMode(.tail)
+                    }
                 }
                 Spacer(minLength: 0)
             }
@@ -158,7 +120,7 @@ struct IntentionWidgetEntryView: View {
     var body: some View {
         SmallWidgetView(
             title: "Intention",
-            content: entry.intention?.isEmpty == false ? entry.intention! : "Open tabby.journal to set your intention"
+            content: entry.intention?.isEmpty == false ? entry.intention! : intention_default_message
         )
     }
 }
@@ -181,7 +143,7 @@ struct GoalWidgetEntryView: View {
     var body: some View {
         SmallWidgetView(
             title: "Goal",
-            content: entry.goal?.isEmpty == false ? entry.goal! : "Open tabby.journal to set your goal"
+            content: entry.goal?.isEmpty == false ? entry.goal! : goal_default_message
         )
     }
 }
@@ -202,7 +164,6 @@ struct GoalWidget: Widget {
 struct TabbyJournalWidgetBundle: WidgetBundle {
     @WidgetBundleBuilder
     var body: some Widget {
-        MediumWidget()
         IntentionWidget()
         GoalWidget()
     }
@@ -219,10 +180,4 @@ struct TabbyJournalWidgetBundle: WidgetBundle {
     GoalWidget()
 }, timeline: {
     JournalWidgetEntry(date: .now, intention: "", goal: "Finish the Tabby Journal widget UI")
-})
-
-#Preview("Medium", as: .systemMedium, widget: {
-    MediumWidget()
-}, timeline: {
-    JournalWidgetEntry(date: .now, intention: "Write code", goal: "Fix all bugs")
 })
