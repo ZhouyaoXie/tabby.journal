@@ -21,7 +21,7 @@ struct JournalWidgetEntry: TimelineEntry {
 
 // Helper to fetch today's intention/goal from App Group UserDefaults
 struct JournalWidgetDataProvider {
-    static let appGroupId = "group.com.yourdomain.tabbyjournal"
+    static let appGroupId = "group.tabbyjournal"
     static let intentionKey = "widget_intention"
     static let goalKey = "widget_goal"
     
@@ -77,7 +77,7 @@ struct SmallWidgetView: View {
                 VStack(spacing: 10) {
                     // Header
                     Text(title.uppercased())
-                        .font(.custom("EBGaramond-Bold", size: 11))
+                        .font(.garamondBold(size: 11))
                         .kerning(1.7)
                         .foregroundColor(Color.gray)
                         .multilineTextAlignment(.center)
@@ -85,7 +85,7 @@ struct SmallWidgetView: View {
                     // Main content
                     if isDefaultMessage {
                         Text(content)
-                            .font(.custom("EBGaramond-Bold", size: 13))
+                            .font(.garamondBold(size: 13))
                             .foregroundColor(Color.gray)
                             .multilineTextAlignment(.center)
                             .kerning(1)
@@ -95,7 +95,7 @@ struct SmallWidgetView: View {
                             .truncationMode(.tail)
                     } else {
                         Text(content)
-                            .font(.custom("EBGaramond-Bold", size: contentFontSize(for: content)))
+                            .font(.garamondBold(size: contentFontSize(for: content)))
                             .foregroundColor(Color.primary)
                             .multilineTextAlignment(.center)
                             .kerning(1)

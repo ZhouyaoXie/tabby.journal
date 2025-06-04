@@ -7,5 +7,11 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>EBGaramond-Regular.ttf</string>
+		<string>EBGaramond-Bold.ttf</string>
+		<string>EBGaramond-Italic.ttf</string>
+	</array>
 </dict>
 </plist>
