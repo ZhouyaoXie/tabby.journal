@@ -62,7 +62,7 @@ struct SmallWidgetView: View {
     private func contentFontSize(for text: String) -> CGFloat {
         let count = text.count
         if count <= 45 { return 17 }
-        else if count <= 70 { return 15 }
+        else if count <= 64 { return 15 }
         else { return 13 }
     }
     
@@ -103,7 +103,7 @@ struct SmallWidgetView: View {
                             .kerning(1)
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, 6)
-                            .lineLimit(4)
+                            .lineLimit(5)
                             .truncationMode(.tail)
                     }
                 }

@@ -15,6 +15,12 @@ struct JournalView: View {
     // --- App Group UserDefaults ---
     private var intentionKey = "widget_intention"
     private var goalKey = "widget_goal"
+    private let appGroupId = "group.tabbyjournal"
+    // Helper to check if editing today
+    private var isEditingToday: Bool {
+        let calendar = Calendar.current
+        return calendar.isDateInToday(Date())
+    }
 
     enum Field: Hashable {
         case intention, goal, reflection
@@ -50,6 +56,7 @@ struct JournalView: View {
                         .focused($focusedField, equals: .intention)
                         .onChange(of: journalModel.intention) { _ in
                             autosave()
+                            if isEditingToday { updateWidgetIntentionGoal() }
                         }
 
                         // Goal Section
@@ -63,6 +70,7 @@ struct JournalView: View {
                         .focused($focusedField, equals: .goal)
                         .onChange(of: journalModel.goal) { _ in
                             autosave()
+                            if isEditingToday { updateWidgetIntentionGoal() }
                         }
 
                         // Reflection Section
@@ -89,25 +97,6 @@ struct JournalView: View {
                     focusedField = nil
                 }
 
-                // Autosave confirmation banner
-                if showAutoSaveBanner {
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Journal autosaved!")
-                                .font(.subheadline.bold())
-                                .foregroundColor(.white)
-                        }
-                        .padding()
-                        .background(Color.black.opacity(0.8))
-                        .cornerRadius(20)
-                        .padding(.bottom, 20)
-                    }
-                    .transition(.move(edge: .bottom))
-                    .zIndex(1)
-                }
             }
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
@@ -130,16 +119,20 @@ struct JournalView: View {
         journalModel.saveAllFields()
         appState.journalUpdated()
         // Write to App Group UserDefaults for widget
-        UserDefaults.setValue(journalModel.intention, forKey: intentionKey)
-        UserDefaults.setValue(journalModel.goal, forKey: goalKey)
+        UserDefaults.standard.set(journalModel.intention, forKey: intentionKey)
+        UserDefaults.standard.set(journalModel.goal, forKey: goalKey)
         WidgetCenter.shared.reloadAllTimelines()
-        // withAnimation {
-        //     showAutoSaveBanner = true
-        // }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            withAnimation {
-                showAutoSaveBanner = false
-            }
+        }
+    }
+
+    // --- Real-time widget update helper ---
+    private func updateWidgetIntentionGoal() {
+        if let userDefaults = UserDefaults(suiteName: appGroupId) {
+            userDefaults.set(journalModel.intention, forKey: intentionKey)
+            userDefaults.set(journalModel.goal, forKey: goalKey)
+            WidgetCenter.shared.reloadAllTimelines()
+            print("[Widget] Updated intention: \(journalModel.intention), goal: \(journalModel.goal)")
         }
     }
 }
