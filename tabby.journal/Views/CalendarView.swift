@@ -55,6 +55,10 @@ struct CalendarView: View {
     @State private var editedIntention: String = ""
     @State private var editedGoal: String = ""
     @State private var editedReflection: String = ""
+
+    // --- App Group UserDefaults ---
+    private var intentionKey = "widget_intention"
+    private var goalKey = "widget_goal"
     
     // Format for the header (Mon, Aug 17)
     private let dateHeaderFormatter: DateFormatter = {
@@ -550,7 +554,8 @@ struct CalendarView: View {
             }
             // --- Write to App Group UserDefaults if editing today ---
             if calendar.isDateInToday(selectedDate) {
-                AppGroupJournalHelper.saveToday(intention: section == "intention" ? text : currentIntention, goal: section == "goal" ? text : currentGoal)
+                UserDefaults.setValue(currentIntention, forKey: intentionKey)
+                UserDefaults.setValue(currentGoal, forKey: goalKey)
                 WidgetCenter.shared.reloadAllTimelines()
             }
         } catch {
@@ -774,18 +779,5 @@ struct PersistenceController {
         
         // Configure the view context
         container.viewContext.automaticallyMergesChangesFromParent = true
-    }
-}
-
-// --- App Group Helper ---
-struct AppGroupJournalHelper {
-    static let appGroupId = "group.com.yourdomain.tabbyjournal" // <-- Replace with your actual App Group ID
-    static let intentionKey = "widget_intention"
-    static let goalKey = "widget_goal"
-    static func saveToday(intention: String, goal: String) {
-        if let userDefaults = UserDefaults(suiteName: appGroupId) {
-            userDefaults.setValue(intention, forKey: intentionKey)
-            userDefaults.setValue(goal, forKey: goalKey)
-        }
     }
 }

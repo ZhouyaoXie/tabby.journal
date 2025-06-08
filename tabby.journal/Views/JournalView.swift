@@ -4,12 +4,17 @@ import CoreData
 import Foundation
 // Import the shared font extension
 import SwiftUI
+import WidgetKit
 
 struct JournalView: View {
     @StateObject private var journalModel = JournalModel()
     @FocusState private var focusedField: Field?
     @EnvironmentObject var appState: AppState
     @State private var showAutoSaveBanner: Bool = false
+
+    // --- App Group UserDefaults ---
+    private var intentionKey = "widget_intention"
+    private var goalKey = "widget_goal"
 
     enum Field: Hashable {
         case intention, goal, reflection
@@ -124,6 +129,10 @@ struct JournalView: View {
     private func autosave() {
         journalModel.saveAllFields()
         appState.journalUpdated()
+        // Write to App Group UserDefaults for widget
+        UserDefaults.setValue(journalModel.intention, forKey: intentionKey)
+        UserDefaults.setValue(journalModel.goal, forKey: goalKey)
+        WidgetCenter.shared.reloadAllTimelines()
         // withAnimation {
         //     showAutoSaveBanner = true
         // }
