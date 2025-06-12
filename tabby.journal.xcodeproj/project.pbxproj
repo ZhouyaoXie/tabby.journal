@@ -6,6 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		FA3C724D2DFAA36A00535868 /* EBGaramond-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA6033742DD457F200CA4609 /* EBGaramond-Regular.ttf */; };
+		FA3C724E2DFAA37000535868 /* EBGaramond-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA6033762DD457FD00CA4609 /* EBGaramond-Bold.ttf */; };
+		FA3C724F2DFAA37400535868 /* EBGaramond-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA6033782DD4580900CA4609 /* EBGaramond-Italic.ttf */; };
+		FA6033752DD457F200CA4609 /* EBGaramond-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA6033742DD457F200CA4609 /* EBGaramond-Regular.ttf */; };
+		FA6033772DD457FD00CA4609 /* EBGaramond-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA6033762DD457FD00CA4609 /* EBGaramond-Bold.ttf */; };
+		FA6033792DD4580900CA4609 /* EBGaramond-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA6033782DD4580900CA4609 /* EBGaramond-Italic.ttf */; };
+		FA6033912DDEC08600CA4609 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA6033902DDEC08600CA4609 /* WidgetKit.framework */; };
+		FA6033932DDEC08600CA4609 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA6033922DDEC08600CA4609 /* SwiftUI.framework */; };
+		FA6033A22DDEC08800CA4609 /* TabbyJournalWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FA60338E2DDEC08600CA4609 /* TabbyJournalWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FA6033AE2DE814FA00CA4609 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FA6033AD2DE814FA00CA4609 /* LaunchScreen.storyboard */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		FA6032F52DCC74FD00CA4609 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,13 +34,52 @@
 			remoteGlobalIDString = FA6032E52DCC74FC00CA4609;
 			remoteInfo = tabby.journal;
 		};
+		FA6033A02DDEC08800CA4609 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA6032DE2DCC74FC00CA4609 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FA60338D2DDEC08600CA4609;
+			remoteInfo = TabbyJournalWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		FA6033A72DDEC08800CA4609 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				FA6033A22DDEC08800CA4609 /* TabbyJournalWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		FA6032E62DCC74FC00CA4609 /* tabby.journal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tabby.journal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA6032F42DCC74FD00CA4609 /* tabby.journalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tabby.journalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA6032FE2DCC74FD00CA4609 /* tabby.journalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tabby.journalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA6033742DD457F200CA4609 /* EBGaramond-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EBGaramond-Regular.ttf"; sourceTree = "<group>"; };
+		FA6033762DD457FD00CA4609 /* EBGaramond-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EBGaramond-Bold.ttf"; sourceTree = "<group>"; };
+		FA6033782DD4580900CA4609 /* EBGaramond-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EBGaramond-Italic.ttf"; sourceTree = "<group>"; };
+		FA60338E2DDEC08600CA4609 /* TabbyJournalWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TabbyJournalWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA6033902DDEC08600CA4609 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		FA6033922DDEC08600CA4609 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		FA6033A82DDEC0FF00CA4609 /* TabbyJournalWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TabbyJournalWidgetExtension.entitlements; sourceTree = "<group>"; };
+		FA6033AD2DE814FA00CA4609 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		FA6033A32DDEC08800CA4609 /* Exceptions for "TabbyJournalWidget" folder in "TabbyJournalWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = FA60338D2DDEC08600CA4609 /* TabbyJournalWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		FA6032E82DCC74FC00CA4609 /* tabby.journal */ = {
@@ -43,6 +95,14 @@
 		FA6033012DCC74FD00CA4609 /* tabby.journalUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = tabby.journalUITests;
+			sourceTree = "<group>";
+		};
+		FA6033942DDEC08600CA4609 /* TabbyJournalWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				FA6033A32DDEC08800CA4609 /* Exceptions for "TabbyJournalWidget" folder in "TabbyJournalWidgetExtension" target */,
+			);
+			path = TabbyJournalWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,16 +129,32 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FA60338B2DDEC08600CA4609 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FA6033932DDEC08600CA4609 /* SwiftUI.framework in Frameworks */,
+				FA6033912DDEC08600CA4609 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		FA6032DD2DCC74FC00CA4609 = {
 			isa = PBXGroup;
 			children = (
+				FA6033AD2DE814FA00CA4609 /* LaunchScreen.storyboard */,
+				FA6033A82DDEC0FF00CA4609 /* TabbyJournalWidgetExtension.entitlements */,
 				FA6032E82DCC74FC00CA4609 /* tabby.journal */,
 				FA6032F72DCC74FD00CA4609 /* tabby.journalTests */,
 				FA6033012DCC74FD00CA4609 /* tabby.journalUITests */,
+				FA6033942DDEC08600CA4609 /* TabbyJournalWidget */,
+				FA60338F2DDEC08600CA4609 /* Frameworks */,
 				FA6032E72DCC74FC00CA4609 /* Products */,
+				FA6033742DD457F200CA4609 /* EBGaramond-Regular.ttf */,
+				FA6033762DD457FD00CA4609 /* EBGaramond-Bold.ttf */,
+				FA6033782DD4580900CA4609 /* EBGaramond-Italic.ttf */,
 			);
 			sourceTree = "<group>";
 		};
@@ -88,8 +164,18 @@
 				FA6032E62DCC74FC00CA4609 /* tabby.journal.app */,
 				FA6032F42DCC74FD00CA4609 /* tabby.journalTests.xctest */,
 				FA6032FE2DCC74FD00CA4609 /* tabby.journalUITests.xctest */,
+				FA60338E2DDEC08600CA4609 /* TabbyJournalWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		FA60338F2DDEC08600CA4609 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				FA6033902DDEC08600CA4609 /* WidgetKit.framework */,
+				FA6033922DDEC08600CA4609 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -102,10 +188,12 @@
 				FA6032E22DCC74FC00CA4609 /* Sources */,
 				FA6032E32DCC74FC00CA4609 /* Frameworks */,
 				FA6032E42DCC74FC00CA4609 /* Resources */,
+				FA6033A72DDEC08800CA4609 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				FA6033A12DDEC08800CA4609 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				FA6032E82DCC74FC00CA4609 /* tabby.journal */,
@@ -163,6 +251,28 @@
 			productReference = FA6032FE2DCC74FD00CA4609 /* tabby.journalUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		FA60338D2DDEC08600CA4609 /* TabbyJournalWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FA6033A42DDEC08800CA4609 /* Build configuration list for PBXNativeTarget "TabbyJournalWidgetExtension" */;
+			buildPhases = (
+				FA60338A2DDEC08600CA4609 /* Sources */,
+				FA60338B2DDEC08600CA4609 /* Frameworks */,
+				FA60338C2DDEC08600CA4609 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				FA6033942DDEC08600CA4609 /* TabbyJournalWidget */,
+			);
+			name = TabbyJournalWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = TabbyJournalWidgetExtension;
+			productReference = FA60338E2DDEC08600CA4609 /* TabbyJournalWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -184,6 +294,9 @@
 						CreatedOnToolsVersion = 16.3;
 						TestTargetID = FA6032E52DCC74FC00CA4609;
 					};
+					FA60338D2DDEC08600CA4609 = {
+						CreatedOnToolsVersion = 16.3;
+					};
 				};
 			};
 			buildConfigurationList = FA6032E12DCC74FC00CA4609 /* Build configuration list for PBXProject "tabby.journal" */;
@@ -203,6 +316,7 @@
 				FA6032E52DCC74FC00CA4609 /* tabby.journal */,
 				FA6032F32DCC74FD00CA4609 /* tabby.journalTests */,
 				FA6032FD2DCC74FD00CA4609 /* tabby.journalUITests */,
+				FA60338D2DDEC08600CA4609 /* TabbyJournalWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -212,6 +326,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA6033752DD457F200CA4609 /* EBGaramond-Regular.ttf in Resources */,
+				FA6033772DD457FD00CA4609 /* EBGaramond-Bold.ttf in Resources */,
+				FA6033792DD4580900CA4609 /* EBGaramond-Italic.ttf in Resources */,
+				FA6033AE2DE814FA00CA4609 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,6 +344,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA60338C2DDEC08600CA4609 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FA3C724F2DFAA37400535868 /* EBGaramond-Italic.ttf in Resources */,
+				FA3C724E2DFAA37000535868 /* EBGaramond-Bold.ttf in Resources */,
+				FA3C724D2DFAA36A00535868 /* EBGaramond-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -253,6 +381,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FA60338A2DDEC08600CA4609 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -265,6 +400,11 @@
 			isa = PBXTargetDependency;
 			target = FA6032E52DCC74FC00CA4609 /* tabby.journal */;
 			targetProxy = FA6032FF2DCC74FD00CA4609 /* PBXContainerItemProxy */;
+		};
+		FA6033A12DDEC08800CA4609 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FA60338D2DDEC08600CA4609 /* TabbyJournalWidgetExtension */;
+			targetProxy = FA6033A02DDEC08800CA4609 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -391,19 +531,22 @@
 				CODE_SIGN_ENTITLEMENTS = tabby.journal/tabby_journal.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z66ZQKZ29X;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "tabby-journal-Info.plist";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
@@ -412,10 +555,10 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = 1;
 				XROS_DEPLOYMENT_TARGET = 2.4;
 			};
 			name = Debug;
@@ -428,19 +571,22 @@
 				CODE_SIGN_ENTITLEMENTS = tabby.journal/tabby_journal.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z66ZQKZ29X;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "tabby-journal-Info.plist";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
@@ -449,10 +595,10 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = 1;
 				XROS_DEPLOYMENT_TARGET = 2.4;
 			};
 			name = Release;
@@ -463,6 +609,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z66ZQKZ29X;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
@@ -485,6 +632,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z66ZQKZ29X;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
@@ -506,6 +654,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z66ZQKZ29X;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
@@ -527,6 +676,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z66ZQKZ29X;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
@@ -540,6 +690,75 @@
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_TARGET_NAME = tabby.journal;
 				XROS_DEPLOYMENT_TARGET = 2.4;
+			};
+			name = Release;
+		};
+		FA6033A52DDEC08800CA4609 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = TabbyJournalWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z66ZQKZ29X;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TabbyJournalWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TabbyJournalWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.zhouyaoxie.tabby-journal.TabbyJournalWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		FA6033A62DDEC08800CA4609 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = TabbyJournalWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z66ZQKZ29X;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TabbyJournalWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TabbyJournalWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.zhouyaoxie.tabby-journal.TabbyJournalWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -578,6 +797,15 @@
 			buildConfigurations = (
 				FA60330F2DCC74FD00CA4609 /* Debug */,
 				FA6033102DCC74FD00CA4609 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FA6033A42DDEC08800CA4609 /* Build configuration list for PBXNativeTarget "TabbyJournalWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA6033A52DDEC08800CA4609 /* Debug */,
+				FA6033A62DDEC08800CA4609 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -4,10 +4,33 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>TabbyJournalWidgetExtension.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
 		<key>tabby.journal.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>FA6032E52DCC74FC00CA4609</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>FA6032F32DCC74FD00CA4609</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>FA6032FD2DCC74FD00CA4609</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

@@ -97,10 +97,9 @@ struct SmallWidgetView: View {
                             .truncationMode(.tail)
                     } else {
                         Text(content)
-                            .font(.garamondBold(size: contentFontSize(for: content)))
+                            .font(.garamond(size: contentFontSize(for: content)))
                             .foregroundColor(Color.primary)
                             .multilineTextAlignment(.center)
-                            .kerning(1)
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, 6)
                             .lineLimit(5)
@@ -175,7 +174,7 @@ struct TabbyJournalWidgetBundle: WidgetBundle {
 #Preview("Intention Small", as: .systemSmall, widget: {
     IntentionWidget()
 }, timeline: {
-    JournalWidgetEntry(date: .now, intention: "Be present and mindful.", goal: "")
+    JournalWidgetEntry(date: .now, intention: "Be present and mindful while taking care of myself both physically and mentally.", goal: "")
 })
 
 #Preview("Goal Small", as: .systemSmall, widget: {
