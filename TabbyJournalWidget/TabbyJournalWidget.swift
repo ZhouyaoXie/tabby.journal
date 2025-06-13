@@ -132,7 +132,7 @@ struct IntentionWidget: Widget {
         StaticConfiguration(kind: kind, provider: JournalProvider()) { entry in
             IntentionWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("Intention (tabby.journal)")
+        .configurationDisplayName("Daily Intention")
         .description("See your daily intention at a glance.")
         .supportedFamilies([.systemSmall])
     }
@@ -155,7 +155,7 @@ struct GoalWidget: Widget {
         StaticConfiguration(kind: kind, provider: JournalProvider()) { entry in
             GoalWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("Goal (tabby.journal)")
+        .configurationDisplayName("Daily Goal")
         .description("See your daily goal at a glance.")
         .supportedFamilies([.systemSmall])
     }
