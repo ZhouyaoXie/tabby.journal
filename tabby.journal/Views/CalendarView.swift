@@ -59,6 +59,7 @@ struct CalendarView: View {
     // --- App Group UserDefaults ---
     private var intentionKey = "widget_intention"
     private var goalKey = "widget_goal"
+    private let appGroupId = "group.tabbyjournal"
     
     // Format for the header (Mon, Aug 17)
     private let dateHeaderFormatter: DateFormatter = {
@@ -523,6 +524,20 @@ struct CalendarView: View {
         let components = calendar.dateComponents([.year, .month, .day], from: date)
         return "\(components.year ?? 0)-\(components.month ?? 0)-\(components.day ?? 0)"
     }
+
+    // --- Real-time widget update helper ---
+    private func updateWidgetIntentionGoal(section: String, text: String) {
+        if let userDefaults = UserDefaults(suiteName: appGroupId) {
+            if section == "intention" {
+                userDefaults.set(text, forKey: intentionKey)
+                print("[Widget] Updated intention: \(text)")
+            } else if section == "goal" {
+                userDefaults.set(text, forKey: goalKey)
+                print("[Widget] Updated goal: \(text)")
+            }
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+    }
     
     // --- Save edited section to Core Data ---
     private func saveEditedSection(section: String, text: String) {
@@ -554,9 +569,7 @@ struct CalendarView: View {
             }
             // --- Write to App Group UserDefaults if editing today ---
             if calendar.isDateInToday(selectedDate) {
-                UserDefaults.setValue(currentIntention, forKey: intentionKey)
-                UserDefaults.setValue(currentGoal, forKey: goalKey)
-                WidgetCenter.shared.reloadAllTimelines()
+                updateWidgetIntentionGoal(section: section, text: text)
             }
         } catch {
             print("Error saving edited section: \(error)")

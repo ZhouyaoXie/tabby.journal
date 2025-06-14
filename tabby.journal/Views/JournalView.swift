@@ -119,9 +119,9 @@ struct JournalView: View {
         journalModel.saveAllFields()
         appState.journalUpdated()
         // Write to App Group UserDefaults for widget
-        UserDefaults.standard.set(journalModel.intention, forKey: intentionKey)
-        UserDefaults.standard.set(journalModel.goal, forKey: goalKey)
-        WidgetCenter.shared.reloadAllTimelines()
+        // UserDefaults.standard.set(journalModel.intention, forKey: intentionKey)
+        // UserDefaults.standard.set(journalModel.goal, forKey: goalKey)
+        // WidgetCenter.shared.reloadAllTimelines()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
         }
     }
