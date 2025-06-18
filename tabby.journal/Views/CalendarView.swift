@@ -561,7 +561,7 @@ struct CalendarView: View {
         fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date < %@", startOfDay as NSDate, endOfDay as NSDate)
         fetchRequest.fetchLimit = 1
         do {
-            let results = try viewContext.fetch(fetchRequest)
+            let results = fetchJournalEntry(for: selectedDate)
             let entry: NSManagedObject
             if let existing = results.first {
                 entry = existing
@@ -744,67 +744,67 @@ struct JournalSectionPreview: View {
 }
 
 
-// Helper for preview
-struct PersistenceController {
-    // Shared instance for the app
-    static let shared = PersistenceController()
+// // Helper for preview
+// struct PersistenceController {
+//     // Shared instance for the app
+//     static let shared = PersistenceController()
     
-    // Preview instance with sample data
-    static var preview: PersistenceController = {
-        let controller = PersistenceController(inMemory: true)
+//     // Preview instance with sample data
+//     static var preview: PersistenceController = {
+//         let controller = PersistenceController(inMemory: true)
         
-        // Create 10 sample entries
-        let viewContext = controller.container.viewContext
+//         // Create 10 sample entries
+//         let viewContext = controller.container.viewContext
         
-        // Sample data for past week
-        let calendar = Calendar.current
-        let today = Date()
+//         // Sample data for past week
+//         let calendar = Calendar.current
+//         let today = Date()
         
-        for dayOffset in -6...0 {
-            if let date = calendar.date(byAdding: .day, value: dayOffset, to: today) {
-                let newEntry = NSEntityDescription.insertNewObject(forEntityName: "JournalEntry", into: viewContext)
-                newEntry.setValue(date, forKey: "date")
-                newEntry.setValue("Preview intention for \(dayOffset)", forKey: "intention")
-                newEntry.setValue("Preview goal for \(dayOffset)", forKey: "goal")
+//         for dayOffset in -6...0 {
+//             if let date = calendar.date(byAdding: .day, value: dayOffset, to: today) {
+//                 let newEntry = NSEntityDescription.insertNewObject(forEntityName: "JournalEntry", into: viewContext)
+//                 newEntry.setValue(date, forKey: "date")
+//                 newEntry.setValue("Preview intention for \(dayOffset)", forKey: "intention")
+//                 newEntry.setValue("Preview goal for \(dayOffset)", forKey: "goal")
                 
-                // Only add reflection for past days
-                if dayOffset < 0 {
-                    newEntry.setValue("Preview reflection for \(dayOffset)", forKey: "reflection")
-                }
-            }
-        }
+//                 // Only add reflection for past days
+//                 if dayOffset < 0 {
+//                     newEntry.setValue("Preview reflection for \(dayOffset)", forKey: "reflection")
+//                 }
+//             }
+//         }
         
-        // Save the context
-        do {
-            try viewContext.save()
-        } catch {
-            let nsError = error as NSError
-            print("Error creating preview data: \(nsError)")
-        }
+//         // Save the context
+//         do {
+//             try viewContext.save()
+//         } catch {
+//             let nsError = error as NSError
+//             print("Error creating preview data: \(nsError)")
+//         }
         
-        return controller
-    }()
+//         return controller
+//     }()
     
-    let container: NSPersistentContainer
+//     let container: NSPersistentContainer
     
-    init(inMemory: Bool = false) {
-        // Create an in-memory store if specified
-        container = NSPersistentContainer(name: "JournalEntry")
+//     init(inMemory: Bool = false) {
+//         // Create an in-memory store if specified
+//         container = NSPersistentContainer(name: "JournalEntry")
         
-        if inMemory {
-            // Use in-memory store type
-            let storeDescription = NSPersistentStoreDescription()
-            storeDescription.type = NSInMemoryStoreType
-            container.persistentStoreDescriptions = [storeDescription]
-        }
+//         if inMemory {
+//             // Use in-memory store type
+//             let storeDescription = NSPersistentStoreDescription()
+//             storeDescription.type = NSInMemoryStoreType
+//             container.persistentStoreDescriptions = [storeDescription]
+//         }
         
-        container.loadPersistentStores { description, error in
-            if let error = error as NSError? {
-                print("Error loading persistent stores: \(error)")
-            }
-        }
+//         container.loadPersistentStores { description, error in
+//             if let error = error as NSError? {
+//                 print("Error loading persistent stores: \(error)")
+//             }
+//         }
         
-        // Configure the view context
-        container.viewContext.automaticallyMergesChangesFromParent = true
-    }
-}
+//         // Configure the view context
+//         container.viewContext.automaticallyMergesChangesFromParent = true
+//     }
+// }

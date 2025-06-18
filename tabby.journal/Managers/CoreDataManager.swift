@@ -21,8 +21,6 @@ public class CoreDataManager {
         persistentContainer.viewContext
     }
     
-    // MARK: - CRUD Operations
-    
     public func saveContext() {
         if context.hasChanges {
             do {
@@ -65,15 +63,35 @@ public class CoreDataManager {
             return nil
         }
     }
+        
+    public func fetchJournalEntries(from startDate: Date, to endDate: Date) -> [NSManagedObject] {
+        let calendar = Calendar.current
+        let startOfStartDate = calendar.startOfDay(for: startDate)
+        let endOfEndDate = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: endDate))!
+        
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "JournalEntry")
+        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date < %@", startOfStartDate as NSDate, endOfEndDate as NSDate)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        
+        do {
+            return try context.fetch(fetchRequest)
+        } catch {
+            print("Error fetching journal entries: \(error)")
+            return []
+        }
+    }
+
+    public func getOrCreateJournalEntry(for date: Date) -> NSManagedObject {
+        if let existingEntry = fetchJournalEntry(for: date) {
+            return existingEntry
+        }
+        return createJournalEntry(date: date)
+    }
+
     
     public func getOrCreateTodaysEntry() -> NSManagedObject {
         let today = Date()
-        
-        if let existingEntry = fetchJournalEntry(for: today) {
-            return existingEntry
-        }
-        
-        return createJournalEntry(date: today)
+        return getOrCreateJournalEntry(for: today)
     }
     
     public func updateJournalEntryFields(_ entry: NSManagedObject, intention: String?, goal: String?, reflection: String?) {
@@ -100,23 +118,6 @@ public class CoreDataManager {
         }
     }
     
-    public func fetchJournalEntries(from startDate: Date, to endDate: Date) -> [NSManagedObject] {
-        let calendar = Calendar.current
-        let startOfStartDate = calendar.startOfDay(for: startDate)
-        let endOfEndDate = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: endDate))!
-        
-        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "JournalEntry")
-        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date < %@", startOfStartDate as NSDate, endOfEndDate as NSDate)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-        
-        do {
-            return try context.fetch(fetchRequest)
-        } catch {
-            print("Error fetching journal entries: \(error)")
-            return []
-        }
-    }
-    
     public func updateJournalEntry(_ entry: NSManagedObject, intention: String? = nil, goal: String? = nil, reflection: String? = nil, mood: String? = nil) {
         if let intention = intention {
             entry.setValue(intention, forKey: "intention")
@@ -139,20 +140,6 @@ public class CoreDataManager {
         context.delete(entry)
         saveContext()
     }
-    
-    public func deleteAllJournalEntries() {
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "JournalEntry")
-        let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-        
-        do {
-            try context.execute(batchDeleteRequest)
-            saveContext()
-        } catch {
-            print("Error deleting all journal entries: \(error)")
-        }
-    }
-    
-    // MARK: - Helper Methods
     
     public func getEntryValues(_ entry: NSManagedObject) -> (intention: String?, goal: String?, reflection: String?) {
         let intention = entry.value(forKey: "intention") as? String

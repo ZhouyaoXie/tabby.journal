@@ -61,7 +61,7 @@ struct ContentView: View {
 }
 
 #Preview {
-    let container = NSPersistentContainer(name: "JournalEntry")
+    let container: NSPersistentContainer = NSPersistentContainer(name: "JournalEntry")
     container.loadPersistentStores { _, _ in }
     
     let context = container.viewContext
