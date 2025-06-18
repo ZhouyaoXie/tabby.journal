@@ -6,6 +6,7 @@ import SwiftUI // for Font extension
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var appState = AppState()
+    @StateObject private var entryStore = JournalEntryStore()
     @State private var selectedTab: Int = 0
     
     // Create a stub model for non-dependent views
@@ -32,14 +33,14 @@ struct ContentView: View {
         ZStack {
             Color("PageBackground").ignoresSafeArea()
             TabView(selection: $selectedTab) {
-                JournalView()
+                JournalView(entryStore: entryStore)
                     .environmentObject(appState)
                     .tabItem {
                         Label("Journal", systemImage: "book.fill")
                     }
                     .tag(0)
                 
-                CalendarView()
+                CalendarView(entryStore: entryStore)
                     .environmentObject(appState)
                     .tabItem {
                         Label("Calendar", systemImage: "calendar")

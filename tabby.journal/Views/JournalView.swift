@@ -6,8 +6,9 @@ import Foundation
 import SwiftUI
 import WidgetKit
 
+
 struct JournalView: View {
-    @StateObject private var journalModel = JournalModel()
+    @ObservedObject var entryStore: JournalEntryStore
     @FocusState private var focusedField: Field?
     @EnvironmentObject var appState: AppState
     @State private var showAutoSaveBanner: Bool = false
@@ -24,6 +25,11 @@ struct JournalView: View {
 
     enum Field: Hashable {
         case intention, goal, reflection
+    }
+    
+    // Explicit public initializer
+    public init(entryStore: JournalEntryStore) {
+        self.entryStore = entryStore
     }
 
     var body: some View {
@@ -50,11 +56,11 @@ struct JournalView: View {
                             icon: "house.fill",
                             title: "Intention",
                             placeholder: "What do you want to focus on today?",
-                            text: $journalModel.intention,
+                            text: $entryStore.intention,
                             field: .intention
                         )
                         .focused($focusedField, equals: .intention)
-                        .onChange(of: journalModel.intention) { _ in
+                        .onChange(of: entryStore.intention) { _ in
                             autosave()
                             if isEditingToday { updateWidgetIntentionGoal() }
                         }
@@ -64,11 +70,11 @@ struct JournalView: View {
                             icon: "checkmark.seal.fill",
                             title: "Goal",
                             placeholder: "What are 2-3 tasks you want to work on today?",
-                            text: $journalModel.goal,
+                            text: $entryStore.goal,
                             field: .goal
                         )
                         .focused($focusedField, equals: .goal)
-                        .onChange(of: journalModel.goal) { _ in
+                        .onChange(of: entryStore.goal) { _ in
                             autosave()
                             if isEditingToday { updateWidgetIntentionGoal() }
                         }
@@ -79,11 +85,11 @@ struct JournalView: View {
                             title: "Reflection",
                             placeholder:
                                 "What did you learn about yourself today? What adjustments will you make for the next day?",
-                            text: $journalModel.reflection,
+                            text: $entryStore.reflection,
                             field: .reflection
                         )
                         .focused($focusedField, equals: .reflection)
-                        .onChange(of: journalModel.reflection) { _ in
+                        .onChange(of: entryStore.reflection) { _ in
                             autosave()
                         }
 
@@ -116,12 +122,7 @@ struct JournalView: View {
     }
 
     private func autosave() {
-        journalModel.saveAllFields()
-        appState.journalUpdated()
-        // Write to App Group UserDefaults for widget
-        // UserDefaults.standard.set(journalModel.intention, forKey: intentionKey)
-        // UserDefaults.standard.set(journalModel.goal, forKey: goalKey)
-        // WidgetCenter.shared.reloadAllTimelines()
+        // Implement autosave logic
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
         }
     }
@@ -129,10 +130,10 @@ struct JournalView: View {
     // --- Real-time widget update helper ---
     private func updateWidgetIntentionGoal() {
         if let userDefaults = UserDefaults(suiteName: appGroupId) {
-            userDefaults.set(journalModel.intention, forKey: intentionKey)
-            userDefaults.set(journalModel.goal, forKey: goalKey)
+            userDefaults.set(entryStore.intention, forKey: intentionKey)
+            userDefaults.set(entryStore.goal, forKey: goalKey)
             WidgetCenter.shared.reloadAllTimelines()
-            print("[Widget] Updated intention: \(journalModel.intention), goal: \(journalModel.goal)")
+            print("[Widget] Updated intention: \(entryStore.intention), goal: \(entryStore.goal)")
         }
     }
 }
@@ -217,6 +218,3 @@ struct SectionCard: View {
     }
 }
 
-#Preview {
-    JournalView()
-}

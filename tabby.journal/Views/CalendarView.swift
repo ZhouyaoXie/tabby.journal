@@ -41,6 +41,7 @@ struct CalendarView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var appState: AppState
+    @ObservedObject var entryStore: JournalEntryStore
     
     // Journal entry data for the selected date
     @State private var currentIntention: String = ""
@@ -81,6 +82,11 @@ struct CalendarView: View {
         formatter.dateFormat = "MMM"
         return formatter
     }()
+    
+    // Explicit public initializer
+    public init(entryStore: JournalEntryStore) {
+        self.entryStore = entryStore
+    }
     
     // Core Data operations
     private func fetchJournalEntry(for date: Date) -> NSManagedObject? {
@@ -321,10 +327,6 @@ struct CalendarView: View {
                 }
             }
             .navigationTitle("")
-            // .navigationTitle("🐾")
-            // #if os(iOS)
-            // .navigationBarTitleDisplayMode(.inline)
-            // #endif
             .onAppear {
                 print("CalendarView appeared, preparing to refresh data")
                 
@@ -488,19 +490,29 @@ struct CalendarView: View {
     
     // Load journal entry for the selected date from Core Data
     private func loadJournalEntry(for date: Date) {
-        if let entry = fetchJournalEntry(for: date) {
-            // Get values from Core Data
-            let values = getEntryValues(entry)
-            
-            // Update our state values
-            currentIntention = values.intention ?? ""
-            currentGoal = values.goal ?? ""
-            currentReflection = values.reflection ?? ""
+        let calendar = Calendar.current
+        
+        // If the selected date is today, fetch from JournalEntryStore
+        if calendar.isDateInToday(date) {
+            currentIntention = entryStore.intention
+            currentGoal = entryStore.goal
+            currentReflection = entryStore.reflection
         } else {
-            // No entry exists for this date
-            currentIntention = ""
-            currentGoal = ""
-            currentReflection = ""
+            // For other dates, fetch from Core Data
+            if let entry = fetchJournalEntry(for: date) {
+                // Get values from Core Data
+                let values = getEntryValues(entry)
+                
+                // Update our state values
+                currentIntention = values.intention ?? ""
+                currentGoal = values.goal ?? ""
+                currentReflection = values.reflection ?? ""
+            } else {
+                // No entry exists for this date
+                currentIntention = ""
+                currentGoal = ""
+                currentReflection = ""
+            }
         }
         
         hasLoadedData = true
@@ -570,6 +582,13 @@ struct CalendarView: View {
             // --- Write to App Group UserDefaults if editing today ---
             if calendar.isDateInToday(selectedDate) {
                 updateWidgetIntentionGoal(section: section, text: text)
+                // Update shared store for today
+                switch section {
+                case "intention": entryStore.intention = text
+                case "goal": entryStore.goal = text
+                case "reflection": entryStore.reflection = text
+                default: break
+                }
             }
         } catch {
             print("Error saving edited section: \(error)")
@@ -724,11 +743,6 @@ struct JournalSectionPreview: View {
     }
 }
 
-#Preview {
-    CalendarView()
-        .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
-        .environmentObject(AppState())
-}
 
 // Helper for preview
 struct PersistenceController {
