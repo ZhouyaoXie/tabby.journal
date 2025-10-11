@@ -553,21 +553,15 @@ struct CalendarView: View {
     
     // --- Save edited section to Core Data ---
     private func saveEditedSection(section: String, text: String) {
-        // Fetch or create the journal entry for the selected date
-        let calendar = Calendar.current
-        let startOfDay: Date = calendar.startOfDay(for: selectedDate)
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "JournalEntry")
-        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date < %@", startOfDay as NSDate, endOfDay as NSDate)
-        fetchRequest.fetchLimit = 1
         do {
-            let results = fetchJournalEntry(for: selectedDate)
+            let calendar = Calendar.current
             let entry: NSManagedObject
-            if let existing = results.first {
+            if let existing = fetchJournalEntry(for: selectedDate) {
                 entry = existing
             } else {
                 let entity = NSEntityDescription.entity(forEntityName: "JournalEntry", in: viewContext)!
                 entry = NSManagedObject(entity: entity, insertInto: viewContext)
+                let startOfDay = calendar.startOfDay(for: selectedDate)
                 entry.setValue(startOfDay, forKey: "date")
             }
             entry.setValue(text, forKey: section)
