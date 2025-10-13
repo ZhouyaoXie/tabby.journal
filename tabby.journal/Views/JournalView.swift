@@ -12,6 +12,7 @@ struct JournalView: View {
     @FocusState private var focusedField: Field?
     @EnvironmentObject var appState: AppState
     @State private var showAutoSaveBanner: Bool = false
+    @State private var autosaveWorkItem: DispatchWorkItem? = nil
 
     // --- App Group UserDefaults ---
     private var intentionKey = "widget_intention"
@@ -115,16 +116,28 @@ struct JournalView: View {
             .navigationTitle("")
         }
         .onAppear {
-            // Make sure the model has access to our AppState
-            print("JournalView appeared, assigning AppState to JournalModel")
-            JournalModel.sharedAppState = appState
+            loadTodayFromCoreData()
         }
     }
 
     private func autosave() {
-        // Implement autosave logic
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+        // Only autosave for today's entry
+        guard isEditingToday else { return }
+        // Debounce saves
+        autosaveWorkItem?.cancel()
+        let workItem = DispatchWorkItem {
+            let manager = CoreDataManager.shared
+            let entry = manager.getOrCreateTodaysEntry()
+            manager.updateJournalEntryFields(
+                entry,
+                intention: entryStore.intention,
+                goal: entryStore.goal,
+                reflection: entryStore.reflection
+            )
+            appState.journalUpdated()
         }
+        autosaveWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: workItem)
     }
 
     // --- Real-time widget update helper ---
@@ -135,6 +148,16 @@ struct JournalView: View {
             WidgetCenter.shared.reloadAllTimelines()
             print("[Widget] Updated intention: \(entryStore.intention), goal: \(entryStore.goal)")
         }
+    }
+
+    private func loadTodayFromCoreData() {
+        let manager = CoreDataManager.shared
+        let entry = manager.getOrCreateTodaysEntry()
+        let values = manager.getEntryValues(entry)
+        // Update the in-memory store for binding
+        entryStore.intention = values.intention ?? ""
+        entryStore.goal = values.goal ?? ""
+        entryStore.reflection = values.reflection ?? ""
     }
 }
 

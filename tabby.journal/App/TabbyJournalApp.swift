@@ -6,15 +6,7 @@ import UIKit
 struct TabbyJournalApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
-    let persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "JournalEntry")
-        container.loadPersistentStores { _, error in
-            if let error = error {
-                fatalError("Unresolved error \(error)")
-            }
-        }
-        return container
-    }()
+    let persistentContainer: NSPersistentContainer = CoreDataManager.shared.persistentContainer
     
     init() {
         // Configure navigation bar appearance
@@ -25,6 +17,11 @@ struct TabbyJournalApp: App {
         UINavigationBar.appearance().titleTextAttributes = [
             .foregroundColor: cardTextColor
         ]
+
+        // Ensure the viewContext merges changes predictably
+        let context = persistentContainer.viewContext
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }
     
     var body: some Scene {

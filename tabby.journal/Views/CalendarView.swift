@@ -553,40 +553,35 @@ struct CalendarView: View {
     
     // --- Save edited section to Core Data ---
     private func saveEditedSection(section: String, text: String) {
-        do {
-            let calendar = Calendar.current
-            let entry: NSManagedObject
-            if let existing = fetchJournalEntry(for: selectedDate) {
-                entry = existing
-            } else {
-                let entity = NSEntityDescription.entity(forEntityName: "JournalEntry", in: viewContext)!
-                entry = NSManagedObject(entity: entity, insertInto: viewContext)
-                let startOfDay = calendar.startOfDay(for: selectedDate)
-                entry.setValue(startOfDay, forKey: "date")
-            }
-            entry.setValue(text, forKey: section)
-            try viewContext.save()
-            // Update local state
+        let calendar = Calendar.current
+        // Use the shared CoreDataManager to ensure consistent metadata (id/createdAt/updatedAt)
+        let entry = CoreDataManager.shared.getOrCreateJournalEntry(for: selectedDate)
+        // Update only the edited field and persist
+        switch section {
+        case "intention":
+            CoreDataManager.shared.updateJournalEntryFields(entry, intention: text, goal: nil, reflection: nil)
+            currentIntention = text
+        case "goal":
+            CoreDataManager.shared.updateJournalEntryFields(entry, intention: nil, goal: text, reflection: nil)
+            currentGoal = text
+        case "reflection":
+            CoreDataManager.shared.updateJournalEntryFields(entry, intention: nil, goal: nil, reflection: text)
+            currentReflection = text
+        default:
+            break
+        }
+        // If editing today, update widget store and shared in-memory store for instant UI updates
+        if calendar.isDateInToday(selectedDate) {
+            updateWidgetIntentionGoal(section: section, text: text)
             switch section {
-            case "intention": currentIntention = text
-            case "goal": currentGoal = text
-            case "reflection": currentReflection = text
+            case "intention": entryStore.intention = text
+            case "goal": entryStore.goal = text
+            case "reflection": entryStore.reflection = text
             default: break
             }
-            // --- Write to App Group UserDefaults if editing today ---
-            if calendar.isDateInToday(selectedDate) {
-                updateWidgetIntentionGoal(section: section, text: text)
-                // Update shared store for today
-                switch section {
-                case "intention": entryStore.intention = text
-                case "goal": entryStore.goal = text
-                case "reflection": entryStore.reflection = text
-                default: break
-                }
-            }
-        } catch {
-            print("Error saving edited section: \(error)")
         }
+        // Broadcast change so other views refresh from Core Data
+        appState.journalUpdated()
     }
 }
 
